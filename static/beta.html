@@ -1,0 +1,1015 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mancuso Method Beta</title>
+  <style>
+    :root {
+      --bg: #12130f;
+      --panel: #1b1d18;
+      --panel-2: #22251f;
+      --ink: #f2efe6;
+      --soft: #cfc7b8;
+      --muted: #898679;
+      --line: #31342b;
+      --accent: #d66d4c;
+      --accent-2: #87a878;
+      --blue: #7aa0b8;
+      --warn: #c59a4a;
+      --bad: #bf624f;
+      --ok: #79a06f;
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-height: 64px;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(18, 19, 15, 0.96);
+      position: sticky;
+      top: 0;
+      z-index: 3;
+    }
+
+    .mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #e2a678);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      color: white;
+      flex: 0 0 auto;
+    }
+
+    .brand { min-width: 0; }
+    .brand-title {
+      font-weight: 700;
+      font-size: 16px;
+      line-height: 1.2;
+    }
+    .brand-sub {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .status {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--soft);
+      font-size: 13px;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--ok);
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(340px, 420px) minmax(0, 1fr);
+      min-height: 0;
+    }
+
+    .left {
+      border-right: 1px solid var(--line);
+      background: #171914;
+      overflow: auto;
+      min-height: calc(100vh - 64px);
+    }
+
+    .right {
+      overflow: auto;
+      min-height: calc(100vh - 64px);
+      background: var(--bg);
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      padding: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .tab {
+      border: 1px solid var(--line);
+      color: var(--soft);
+      background: var(--panel);
+      border-radius: var(--radius);
+      padding: 9px 8px;
+      font-size: 13px;
+    }
+    .tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    .pane { display: none; padding: 16px; }
+    .pane.active { display: block; }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--ink);
+      margin: 4px 0 14px;
+    }
+
+    .field { margin-bottom: 12px; }
+    label {
+      display: block;
+      color: var(--soft);
+      font-size: 12px;
+      font-weight: 650;
+      margin-bottom: 6px;
+    }
+    input, textarea, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      color: var(--ink);
+      padding: 10px 11px;
+      outline: none;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--accent);
+    }
+    textarea {
+      min-height: 82px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .choice-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .choice {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      padding: 9px 10px;
+      color: var(--soft);
+      font-size: 13px;
+      font-weight: 650;
+    }
+    .choice input {
+      width: auto;
+      accent-color: var(--accent);
+    }
+
+    .connect-list {
+      display: grid;
+      gap: 8px;
+    }
+    .connect-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      padding: 10px;
+    }
+    .connect-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 750;
+    }
+    .connect-name input {
+      width: auto;
+      accent-color: var(--accent);
+    }
+    .connect-meta {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .connect-button {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel-2);
+      color: var(--ink);
+      padding: 7px 9px;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .readonly-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .readonly-box {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      padding: 10px;
+      min-height: 58px;
+    }
+    .readonly-label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 750;
+      text-transform: uppercase;
+    }
+    .readonly-value {
+      margin-top: 6px;
+      color: var(--soft);
+      font-size: 14px;
+    }
+
+    .primary, .secondary {
+      border: 1px solid transparent;
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      color: white;
+      font-weight: 700;
+      width: 100%;
+    }
+    .primary { background: var(--accent); }
+    .secondary {
+      background: var(--panel-2);
+      border-color: var(--line);
+      color: var(--ink);
+    }
+    .primary:disabled, .secondary:disabled {
+      opacity: .55;
+      cursor: default;
+    }
+
+    .coach-shell {
+      width: min(920px, 100%);
+      margin: 0 auto;
+      padding: 22px;
+    }
+
+    .daily-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      padding: 12px;
+      min-height: 82px;
+    }
+    .metric-label {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 750;
+    }
+    .metric-value {
+      margin-top: 8px;
+      font-size: 24px;
+      font-weight: 750;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+    .metric-note {
+      margin-top: 3px;
+      color: var(--soft);
+      font-size: 12px;
+    }
+
+    .coach-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+    .coach-card h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+    .briefing {
+      color: var(--ink);
+      line-height: 1.58;
+      font-size: 15px;
+    }
+    .briefing h3 {
+      font-size: 15px;
+      margin: 18px 0 8px;
+      color: var(--ink);
+    }
+    .briefing strong { color: #fff; }
+
+    .chat-log {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .msg {
+      max-width: 78%;
+      border-radius: var(--radius);
+      padding: 11px 12px;
+      line-height: 1.45;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+    .msg.user {
+      align-self: flex-end;
+      background: var(--accent);
+      color: white;
+    }
+    .msg.coach {
+      align-self: flex-start;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      color: var(--ink);
+    }
+    .composer {
+      display: grid;
+      grid-template-columns: 1fr 96px;
+      gap: 8px;
+    }
+    .composer input { height: 42px; }
+
+    .feedback-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .feedback-row button {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel-2);
+      color: var(--ink);
+      padding: 10px 8px;
+      font-weight: 700;
+    }
+
+    .notice {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+      margin-top: 10px;
+    }
+
+    .empty {
+      color: var(--soft);
+      line-height: 1.55;
+      margin: 0;
+    }
+
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; }
+      .left {
+        border-right: none;
+        border-bottom: 1px solid var(--line);
+        min-height: auto;
+      }
+      .right { min-height: auto; }
+      .daily-strip { grid-template-columns: repeat(2, 1fr); }
+      .msg { max-width: 92%; }
+    }
+
+    @media (max-width: 520px) {
+      header { padding: 11px 12px; }
+      .status { display: none; }
+      .tabs { grid-template-columns: 1fr 1fr; }
+      .pane { padding: 14px; }
+      .coach-shell { padding: 14px; }
+      .daily-strip { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .grid-2, .feedback-row, .composer { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="mark">M</div>
+      <div class="brand">
+        <div class="brand-title">Mancuso Method Beta</div>
+        <div class="brand-sub" id="subtitle">No athlete loaded</div>
+      </div>
+      <div class="status"><span class="status-dot"></span><span id="status">Ready</span></div>
+    </header>
+
+    <main>
+      <aside class="left">
+        <div class="tabs">
+          <button class="tab active" data-tab="profile">Profile</button>
+          <button class="tab" data-tab="checkin">Check-in</button>
+          <button class="tab" data-tab="feedback">Feedback</button>
+        </div>
+
+        <section class="pane active" id="profile">
+          <div class="section-title">Athlete Profile</div>
+          <div class="field">
+            <label for="name">Name</label>
+            <input id="name" autocomplete="name" placeholder="First name">
+          </div>
+
+          <div class="field">
+            <label>Auto-filled from connected devices</label>
+            <div class="readonly-grid">
+              <div class="readonly-box">
+                <div class="readonly-label">Age</div>
+                <div class="readonly-value" id="ageDisplay">Connect device</div>
+              </div>
+              <div class="readonly-box">
+                <div class="readonly-label">Sex</div>
+                <div class="readonly-value" id="sexDisplay">Connect device</div>
+              </div>
+              <div class="readonly-box">
+                <div class="readonly-label">Height</div>
+                <div class="readonly-value" id="heightDisplay">Connect device</div>
+              </div>
+              <div class="readonly-box">
+                <div class="readonly-label">Weight</div>
+                <div class="readonly-value" id="weightDisplay">Connect device</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Primary fitness goal</label>
+            <div class="choice-grid" id="fitnessGoals">
+              <label class="choice"><input type="checkbox" value="weight loss"> Weight loss</label>
+              <label class="choice"><input type="checkbox" value="strength"> Strength</label>
+              <label class="choice"><input type="checkbox" value="endurance"> Endurance</label>
+              <label class="choice"><input type="checkbox" value="sports specific"> Sports specific</label>
+              <label class="choice"><input type="checkbox" value="increase running speed"> Increase running speed</label>
+              <label class="choice"><input type="checkbox" value="increase running distance"> Increase running distance</label>
+              <label class="choice"><input type="checkbox" value="road bike"> Road bike</label>
+              <label class="choice"><input type="checkbox" value="injury/surgery recovery"> Injury/surgery recovery</label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="upcoming_event">Do you have an upcoming event?</label>
+            <input id="upcoming_event" placeholder="Optional: event name and date">
+          </div>
+
+          <div class="field">
+            <label>Typical training schedule</label>
+            <div class="choice-grid" id="trainingDays">
+              <label class="choice"><input type="checkbox" value="Monday"> Monday</label>
+              <label class="choice"><input type="checkbox" value="Tuesday"> Tuesday</label>
+              <label class="choice"><input type="checkbox" value="Wednesday"> Wednesday</label>
+              <label class="choice"><input type="checkbox" value="Thursday"> Thursday</label>
+              <label class="choice"><input type="checkbox" value="Friday"> Friday</label>
+              <label class="choice"><input type="checkbox" value="Saturday"> Saturday</label>
+              <label class="choice"><input type="checkbox" value="Sunday"> Sunday</label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Fitness devices/apps</label>
+            <div class="connect-list" id="dataSources">
+              <div class="connect-item">
+                <div>
+                  <label class="connect-name"><input type="checkbox" value="Strava"> Strava</label>
+                  <div class="connect-meta">Workouts, sport type, distance, pace, HR when available</div>
+                </div>
+                <button class="connect-button" type="button" data-provider="Strava" id="stravaButton">Connect</button>
+              </div>
+              <div class="connect-item">
+                <div>
+                  <label class="connect-name"><input type="checkbox" value="Oura"> Oura</label>
+                  <div class="connect-meta">Sleep, readiness, HRV, age, height, weight, sex</div>
+                </div>
+                <button class="connect-button" type="button" data-provider="Oura">Connect</button>
+              </div>
+              <div class="connect-item">
+                <div>
+                  <label class="connect-name"><input type="checkbox" value="Apple Watch"> Apple Watch</label>
+                  <div class="connect-meta">Workouts and HR through Strava/Apple Health bridge</div>
+                </div>
+                <button class="connect-button" type="button" data-provider="Apple Watch">Connect</button>
+              </div>
+              <div class="connect-item">
+                <div>
+                  <label class="connect-name"><input type="checkbox" value="Apple Health"> Apple Health</label>
+                  <div class="connect-meta">Profile, workouts, sleep, HR through HealthKit path</div>
+                </div>
+                <button class="connect-button" type="button" data-provider="Apple Health">Connect</button>
+              </div>
+            </div>
+            <p class="notice" id="connectStatus">Connections will become the source of truth for profile and daily data.</p>
+          </div>
+
+          <div class="field">
+            <label for="injury_limitations">Injury limitations</label>
+            <textarea id="injury_limitations" placeholder="Optional"></textarea>
+          </div>
+
+          <div class="field">
+            <label for="nutrition_restrictions">Nutrition restrictions</label>
+            <textarea id="nutrition_restrictions" placeholder="Optional"></textarea>
+          </div>
+
+          <div class="field">
+            <label for="coaching_style">Coaching style</label>
+            <select id="coaching_style">
+              <option>Direct but supportive</option>
+              <option>Gentle and encouraging</option>
+              <option>Analytical and precise</option>
+              <option>Race-focused and blunt</option>
+            </select>
+          </div>
+
+          <input id="age" type="hidden">
+          <input id="sex" type="hidden">
+          <input id="height" type="hidden">
+          <input id="weight" type="hidden">
+
+          <button class="primary" id="saveProfile">Save Profile</button>
+          <p class="notice">Profile setup captures only what connected data cannot reliably infer.</p>
+        </section>
+
+        <section class="pane" id="checkin">
+          <div class="section-title">Daily Check-in</div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="sleep_hours">Sleep hours</label>
+              <input id="sleep_hours" type="number" min="0" max="14" step="0.1">
+            </div>
+            <div class="field">
+              <label for="sleep_quality">Sleep quality 1-10</label>
+              <input id="sleep_quality" type="number" min="1" max="10" step="1">
+            </div>
+            <div class="field">
+              <label for="hrv_ms">HRV ms</label>
+              <input id="hrv_ms" type="number" min="0" step="1">
+            </div>
+            <div class="field">
+              <label for="resting_hr">Resting HR</label>
+              <input id="resting_hr" type="number" min="0" step="1">
+            </div>
+            <div class="field">
+              <label for="readiness_score">Readiness score</label>
+              <input id="readiness_score" type="number" min="0" max="100" step="1">
+            </div>
+            <div class="field">
+              <label for="soreness">Soreness 1-10</label>
+              <input id="soreness" type="number" min="1" max="10" step="1">
+            </div>
+          </div>
+          <div class="field">
+            <label for="stress">Stress/life load 1-10</label>
+            <input id="stress" type="number" min="1" max="10" step="1">
+          </div>
+          <div class="field">
+            <label for="workout_done">Workout already done</label>
+            <textarea id="workout_done" placeholder="What happened yesterday or today"></textarea>
+          </div>
+          <div class="field">
+            <label for="planned_training">Planned training today</label>
+            <textarea id="planned_training" placeholder="What the athlete is considering"></textarea>
+          </div>
+          <div class="field">
+            <label for="nutrition_notes">Nutrition notes</label>
+            <textarea id="nutrition_notes" placeholder="Yesterday intake, breakfast, concerns, fueling pattern"></textarea>
+          </div>
+          <div class="field">
+            <label for="cycle_note">Cycle note</label>
+            <input id="cycle_note" placeholder="Optional">
+          </div>
+          <div class="field">
+            <label for="notes">Anything else</label>
+            <textarea id="notes" placeholder="Mood, travel, work stress, symptoms, schedule"></textarea>
+          </div>
+          <button class="primary" id="saveCheckin">Generate Briefing</button>
+        </section>
+
+        <section class="pane" id="feedback">
+          <div class="section-title">Feedback</div>
+          <div class="feedback-row">
+            <button data-rating="accurate">Accurate</button>
+            <button data-rating="off">Off</button>
+            <button data-rating="useful">Useful</button>
+          </div>
+          <div class="field">
+            <label for="feedback_text">What should the coach learn?</label>
+            <textarea id="feedback_text" placeholder="What felt right, what felt wrong, what did you actually do?"></textarea>
+          </div>
+          <button class="secondary" id="sendFeedback">Save Feedback</button>
+          <p class="notice" id="feedbackStatus"></p>
+        </section>
+      </aside>
+
+      <section class="right">
+        <div class="coach-shell">
+          <div class="daily-strip">
+            <div class="metric">
+              <div class="metric-label">Sleep</div>
+              <div class="metric-value" id="mSleep">--</div>
+              <div class="metric-note">hours</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">HRV</div>
+              <div class="metric-value" id="mHrv">--</div>
+              <div class="metric-note">ms</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Readiness</div>
+              <div class="metric-value" id="mReady">--</div>
+              <div class="metric-note">score</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Stress</div>
+              <div class="metric-value" id="mStress">--</div>
+              <div class="metric-note">1-10</div>
+            </div>
+          </div>
+
+          <div class="coach-card">
+            <h2>Daily Briefing</h2>
+            <div class="briefing" id="briefing">
+              <p class="empty">Create a profile, complete today&apos;s check-in, then generate the coach briefing.</p>
+            </div>
+          </div>
+
+          <div class="coach-card">
+            <h2>Coach Chat</h2>
+            <div class="chat-log" id="chatLog">
+              <div class="msg coach">Once the briefing is generated, ask a follow-up here.</div>
+            </div>
+            <div class="composer">
+              <input id="chatInput" placeholder="Ask the coach...">
+              <button class="primary" id="sendChat">Send</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const API = "";
+    const params = new URLSearchParams(window.location.search);
+    let userId = params.get("user_id") || localStorage.getItem("mm_beta_user_id") || "";
+    let lastRating = "";
+    if (userId) localStorage.setItem("mm_beta_user_id", userId);
+
+    const ids = [
+      "name", "upcoming_event", "injury_limitations", "nutrition_restrictions",
+      "coaching_style", "age", "sex", "height", "weight",
+      "sleep_hours", "sleep_quality", "hrv_ms", "resting_hr", "readiness_score",
+      "soreness", "stress", "workout_done", "planned_training", "nutrition_notes",
+      "cycle_note", "notes"
+    ];
+
+    function el(id) { return document.getElementById(id); }
+    function val(id) { return el(id).value.trim(); }
+    function num(id) { return val(id) === "" ? null : Number(val(id)); }
+    function lines(id) { return val(id).split(/\n+/).map(s => s.trim()).filter(Boolean); }
+    function checkedValues(containerId) {
+      return Array.from(document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`))
+        .map(input => input.value);
+    }
+    function setCheckedValues(containerId, values) {
+      const set = new Set(Array.isArray(values) ? values : []);
+      document.querySelectorAll(`#${containerId} input[type="checkbox"]`).forEach(input => {
+        input.checked = set.has(input.value);
+      });
+    }
+
+    function setStatus(text) { el("status").textContent = text; }
+
+    document.querySelectorAll(".tab").forEach(button => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".pane").forEach(p => p.classList.remove("active"));
+        button.classList.add("active");
+        el(button.dataset.tab).classList.add("active");
+      });
+    });
+
+    function updateSubtitle() {
+      const name = val("name") || userId || "No athlete loaded";
+      el("subtitle").textContent = userId ? `${name} · ${userId}` : name;
+    }
+
+    ids.forEach(id => {
+      const node = el(id);
+      if (node) node.addEventListener("input", updateMetrics);
+    });
+
+    function updateMetrics() {
+      el("mSleep").textContent = val("sleep_hours") || "--";
+      el("mHrv").textContent = val("hrv_ms") || "--";
+      el("mReady").textContent = val("readiness_score") || "--";
+      el("mStress").textContent = val("stress") || "--";
+      el("ageDisplay").textContent = val("age") || "Connect device";
+      el("sexDisplay").textContent = val("sex") || "Connect device";
+      el("heightDisplay").textContent = val("height") || "Connect device";
+      el("weightDisplay").textContent = val("weight") || "Connect device";
+      updateSubtitle();
+    }
+
+    function profilePayload() {
+      return {
+        user_id: userId || val("name"),
+        name: val("name"),
+        age: val("age"),
+        sex: val("sex"),
+        height: val("height"),
+        weight: val("weight"),
+        fitness_goals: checkedValues("fitnessGoals"),
+        upcoming_event: val("upcoming_event"),
+        training_days: checkedValues("trainingDays"),
+        data_sources: checkedValues("dataSources"),
+        injury_limitations: val("injury_limitations"),
+        nutrition_restrictions: val("nutrition_restrictions"),
+        coaching_style: val("coaching_style")
+      };
+    }
+
+    function checkinPayload() {
+      return {
+        user_id: userId,
+        date: new Date().toISOString().slice(0, 10),
+        sleep_hours: num("sleep_hours"),
+        sleep_quality: num("sleep_quality"),
+        hrv_ms: num("hrv_ms"),
+        resting_hr: num("resting_hr"),
+        readiness_score: num("readiness_score"),
+        soreness: num("soreness"),
+        stress: num("stress"),
+        workout_done: val("workout_done"),
+        planned_training: val("planned_training"),
+        nutrition_notes: val("nutrition_notes"),
+        cycle_note: val("cycle_note"),
+        notes: val("notes")
+      };
+    }
+
+    async function postJSON(url, payload) {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload)
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Request failed");
+      return data;
+    }
+
+    el("saveProfile").addEventListener("click", async () => {
+      if (!val("name")) {
+        setStatus("Name required");
+        return;
+      }
+      setStatus("Saving profile");
+      try {
+        const data = await postJSON(`${API}/api/profile`, profilePayload());
+        userId = data.profile.user_id;
+        localStorage.setItem("mm_beta_user_id", userId);
+        updateSubtitle();
+        setStatus("Profile saved");
+        document.querySelector('[data-tab="checkin"]').click();
+      } catch (err) {
+        setStatus(err.message);
+      }
+    });
+
+    document.querySelectorAll(".connect-button").forEach(button => {
+      button.addEventListener("click", () => {
+        const provider = button.dataset.provider;
+        const checkbox = document.querySelector(`#dataSources input[value="${provider}"]`);
+        if (checkbox) checkbox.checked = true;
+
+        if (!userId) {
+          el("connectStatus").textContent = "Save profile before connecting devices.";
+          setStatus("Save profile first");
+          return;
+        }
+
+        if (provider === "Strava") {
+          connectOrSyncStrava();
+          return;
+        }
+
+        el("connectStatus").textContent = `${provider} selected. This provider is planned after Strava.`;
+        setStatus(`${provider} planned`);
+      });
+    });
+
+    async function connectOrSyncStrava() {
+      setStatus("Checking Strava");
+      try {
+        const response = await fetch(`${API}/api/integrations/status/${userId}`);
+        const status = await response.json();
+        if (status.strava && status.strava.connected) {
+          el("connectStatus").textContent = "Syncing latest Strava activities...";
+          const data = await postJSON(`${API}/api/integrations/strava/sync`, {user_id: userId, days: 21});
+          el("connectStatus").textContent = `Strava synced: ${data.count} recent activities found.`;
+          setStatus("Strava synced");
+          return;
+        }
+        window.location.href = `${API}/api/integrations/strava/connect?user_id=${encodeURIComponent(userId)}`;
+      } catch (err) {
+        el("connectStatus").textContent = err.message;
+        setStatus("Strava issue");
+      }
+    }
+
+    async function refreshIntegrationStatus() {
+      if (!userId) return;
+      try {
+        const response = await fetch(`${API}/api/integrations/status/${userId}`);
+        if (!response.ok) return;
+        const data = await response.json();
+        if (data.strava && data.strava.connected) {
+          const athlete = data.strava.athlete || {};
+          el("connectStatus").textContent = `Strava connected${athlete.name ? ` for ${athlete.name}` : ""}.`;
+          el("stravaButton").textContent = "Sync";
+          const checkbox = document.querySelector('#dataSources input[value="Strava"]');
+          if (checkbox) checkbox.checked = true;
+          if (athlete.sex && !val("sex")) el("sex").value = athlete.sex;
+          if (athlete.weight && !val("weight")) el("weight").value = athlete.weight;
+          updateMetrics();
+        }
+      } catch {
+        return;
+      }
+    }
+
+    el("saveCheckin").addEventListener("click", async () => {
+      if (!userId) {
+        setStatus("Save profile first");
+        document.querySelector('[data-tab="profile"]').click();
+        return;
+      }
+      setStatus("Generating briefing");
+      el("briefing").innerHTML = `<p class="empty">Coach is reading the check-in...</p>`;
+      try {
+        const checkinData = await postJSON(`${API}/api/checkin`, checkinPayload());
+        const briefingData = await postJSON(`${API}/api/briefing`, {
+          user_id: userId,
+          checkin: checkinData.checkin
+        });
+        el("briefing").innerHTML = renderMarkdown(briefingData.briefing);
+        el("chatLog").innerHTML = `<div class="msg coach">${escapeHTML(briefingData.briefing)}</div>`;
+        setStatus("Briefing ready");
+      } catch (err) {
+        el("briefing").innerHTML = `<p class="empty">${escapeHTML(err.message)}</p>`;
+        setStatus("Briefing failed");
+      }
+    });
+
+    el("sendChat").addEventListener("click", sendChat);
+    el("chatInput").addEventListener("keydown", event => {
+      if (event.key === "Enter") sendChat();
+    });
+
+    async function sendChat() {
+      const message = val("chatInput");
+      if (!message || !userId) return;
+      el("chatInput").value = "";
+      addMessage("user", message);
+      setStatus("Coach thinking");
+      try {
+        const data = await postJSON(`${API}/api/chat`, {user_id: userId, message});
+        addMessage("coach", data.reply);
+        setStatus("Ready");
+      } catch (err) {
+        addMessage("coach", err.message);
+        setStatus("Chat failed");
+      }
+    }
+
+    function addMessage(role, text) {
+      const div = document.createElement("div");
+      div.className = `msg ${role}`;
+      div.textContent = text;
+      el("chatLog").appendChild(div);
+      div.scrollIntoView({behavior: "smooth", block: "end"});
+    }
+
+    document.querySelectorAll("[data-rating]").forEach(button => {
+      button.addEventListener("click", () => {
+        lastRating = button.dataset.rating;
+        document.querySelectorAll("[data-rating]").forEach(b => b.style.borderColor = "var(--line)");
+        button.style.borderColor = "var(--accent)";
+      });
+    });
+
+    el("sendFeedback").addEventListener("click", async () => {
+      if (!userId) {
+        el("feedbackStatus").textContent = "Save a profile first.";
+        return;
+      }
+      try {
+        await postJSON(`${API}/api/feedback`, {
+          user_id: userId,
+          date: new Date().toISOString().slice(0, 10),
+          rating: lastRating,
+          text: val("feedback_text")
+        });
+        el("feedback_text").value = "";
+        el("feedbackStatus").textContent = "Feedback saved.";
+      } catch (err) {
+        el("feedbackStatus").textContent = err.message;
+      }
+    });
+
+    function escapeHTML(text) {
+      return String(text).replace(/[&<>"']/g, ch => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+      }[ch]));
+    }
+
+    function renderMarkdown(text) {
+      let html = escapeHTML(text);
+      html = html.replace(/^###?\s+(.+)$/gm, "<h3>$1</h3>");
+      html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+      html = html.replace(/\n{2,}/g, "</p><p>");
+      html = html.replace(/\n/g, "<br>");
+      return `<p>${html}</p>`;
+    }
+
+    async function loadExisting() {
+      if (!userId) {
+        updateMetrics();
+        return;
+      }
+      try {
+        const profileResp = await fetch(`${API}/api/profile/${userId}`);
+        if (profileResp.ok) {
+          const {profile} = await profileResp.json();
+          Object.entries(profile).forEach(([key, value]) => {
+            if (key === "fitness_goals") setCheckedValues("fitnessGoals", value);
+            else if (key === "training_days") setCheckedValues("trainingDays", value);
+            else if (key === "data_sources") setCheckedValues("dataSources", value);
+            else if (el(key)) el(key).value = value || "";
+          });
+        }
+        const checkinResp = await fetch(`${API}/api/checkin/${userId}`);
+        if (checkinResp.ok) {
+          const {checkin} = await checkinResp.json();
+          if (checkin) {
+            Object.entries(checkin).forEach(([key, value]) => {
+              if (el(key)) el(key).value = value ?? "";
+            });
+          }
+        }
+        updateMetrics();
+        refreshIntegrationStatus();
+      } catch {
+        updateMetrics();
+      }
+    }
+
+    loadExisting();
+  </script>
+</body>
+</html>
