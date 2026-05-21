@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from datetime import datetime
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -11,6 +12,7 @@ load_dotenv()
 
 import beta_coach
 import beta_store
+import polar_data
 import strava_data
 
 
@@ -23,12 +25,28 @@ CORS(app)
 
 def enrich_checkin_with_integrations(user_id: str, checkin: dict) -> dict:
     enriched = dict(checkin)
+    connected_activities = []
     strava = beta_store.get_integration(user_id, "strava") or {}
     if strava.get("recent_activities"):
-        enriched["connected_activities"] = strava["recent_activities"]
+        connected_activities.extend(strava["recent_activities"])
     if strava.get("athlete"):
         enriched["connected_athlete_profile"] = strava["athlete"]
+    polar = beta_store.get_integration(user_id, "polar") or {}
+    if polar.get("recent_activities"):
+        connected_activities.extend(polar["recent_activities"])
+    if polar.get("athlete"):
+        enriched["connected_polar_profile"] = polar["athlete"]
+    if connected_activities:
+        enriched["connected_activities"] = sorted(
+            connected_activities,
+            key=lambda item: item.get("date") or "",
+            reverse=True,
+        )
     return enriched
+
+
+def now_iso() -> str:
+    return datetime.now().isoformat(timespec="seconds")
 
 
 def refresh_memory(user_id: str, checkin: dict | None, messages: list[dict] | None, feedback: dict | None = None) -> None:
@@ -79,6 +97,7 @@ def admin_overview():
 @app.get("/api/integrations/status/<user_id>")
 def integration_status(user_id: str):
     strava = beta_store.get_integration(user_id, "strava")
+    polar = beta_store.get_integration(user_id, "polar")
     return jsonify(
         {
             "strava": {
@@ -88,7 +107,13 @@ def integration_status(user_id: str):
                 "last_sync_at": (strava or {}).get("last_sync_at"),
                 "recent_activities": (strava or {}).get("recent_activities", []),
             },
-            "polar": {"connected": False, "planned": True},
+            "polar": {
+                "configured": polar_data.configured(),
+                "connected": bool(polar and polar.get("token")),
+                "athlete": (polar or {}).get("athlete"),
+                "last_sync_at": (polar or {}).get("last_sync_at"),
+                "recent_activities": (polar or {}).get("recent_activities", []),
+            },
             "apple_health": {"connected": False, "planned": True},
             "apple_watch": {"connected": False, "planned": True},
             "oura": {"connected": False, "planned": True},
@@ -124,6 +149,14 @@ def strava_callback():
     token_payload = strava_data.exchange_code(code)
     athlete = token_payload.get("athlete") or strava_data.get_athlete(token_payload)
     normalized_athlete = strava_data.normalize_athlete(athlete)
+    recent_activities = []
+    try:
+        recent_activities = [
+            strava_data.normalize_activity(activity)
+            for activity in strava_data.get_activities(token_payload, days=45)
+        ]
+    except Exception as exc:
+        print(f"Strava activity sync skipped during connect for {user_id}: {exc}")
     beta_store.save_integration(
         user_id,
         "strava",
@@ -131,6 +164,8 @@ def strava_callback():
             "token": {key: token_payload.get(key) for key in ["access_token", "refresh_token", "expires_at", "expires_in", "token_type", "scope"]},
             "athlete": normalized_athlete,
             "raw_athlete": athlete,
+            "recent_activities": recent_activities,
+            "last_sync_at": now_iso() if recent_activities else None,
         },
     )
 
@@ -149,6 +184,63 @@ def strava_callback():
     return redirect(f"/?connected=strava&user_id={user_id}")
 
 
+@app.get("/api/integrations/polar/connect")
+def polar_connect():
+    user_id = request.args.get("user_id", "").strip()
+    if not user_id:
+        return jsonify({"error": "user_id is required"}), 400
+    if not polar_data.configured():
+        return jsonify({"error": "Missing POLAR_CLIENT_ID or POLAR_CLIENT_SECRET"}), 400
+    state = beta_store.create_oauth_state(user_id, "polar")
+    return redirect(polar_data.authorize_url(state))
+
+
+@app.get("/api/integrations/polar/callback")
+def polar_callback():
+    code = request.args.get("code", "").strip()
+    state = request.args.get("state", "").strip()
+    if not code or not state:
+        return "Missing Polar code or state.", 400
+
+    state_payload = beta_store.consume_oauth_state(state)
+    if not state_payload or state_payload.get("provider") != "polar":
+        return "Invalid or expired Polar authorization state.", 400
+
+    user_id = state_payload["user_id"]
+    try:
+        token_payload = polar_data.exchange_code(code)
+        registration = polar_data.register_user(token_payload)
+        athlete = polar_data.get_user(token_payload)
+    except Exception as exc:
+        return f"Polar connection failed: {exc}", 400
+    normalized_athlete = polar_data.normalize_athlete(athlete, token_payload)
+    beta_store.save_integration(
+        user_id,
+        "polar",
+        {
+            "token": {
+                key: token_payload.get(key)
+                for key in ["access_token", "refresh_token", "expires_at", "expires_in", "token_type", "scope", "x_user_id", "user_id"]
+            },
+            "athlete": normalized_athlete,
+            "raw_athlete": athlete,
+            "registration": registration,
+            "last_sync_at": None,
+        },
+    )
+
+    profile = beta_store.get_profile(user_id) or {"user_id": user_id}
+    for key in ["name", "sex", "age", "height", "weight"]:
+        if normalized_athlete.get(key) and not profile.get(key):
+            profile[key] = normalized_athlete[key]
+    sources = set(profile.get("data_sources") or [])
+    sources.add("Polar")
+    profile["data_sources"] = sorted(sources)
+    beta_store.save_profile(profile)
+
+    return redirect(f"/?connected=polar&user_id={user_id}")
+
+
 @app.post("/api/integrations/strava/sync")
 def strava_sync():
     payload = request.get_json(force=True)
@@ -161,7 +253,7 @@ def strava_sync():
 
     token = strava_data.ensure_fresh_token(integration["token"])
     athlete = strava_data.get_athlete(token)
-    activities = strava_data.get_activities(token, days=int(payload.get("days", 14)))
+    activities = strava_data.get_activities(token, days=int(payload.get("days", 45)))
     normalized = [strava_data.normalize_activity(activity) for activity in activities]
 
     integration = beta_store.save_integration(
@@ -173,6 +265,43 @@ def strava_sync():
             "athlete": strava_data.normalize_athlete(athlete),
             "raw_athlete": athlete,
             "recent_activities": normalized,
+            "last_sync_at": now_iso(),
+        },
+    )
+    return jsonify(
+        {
+            "athlete": integration.get("athlete"),
+            "activities": normalized,
+            "count": len(normalized),
+        }
+    )
+
+
+@app.post("/api/integrations/polar/sync")
+def polar_sync():
+    payload = request.get_json(force=True)
+    user_id = payload.get("user_id", "").strip()
+    if not user_id:
+        return jsonify({"error": "user_id is required"}), 400
+    integration = beta_store.get_integration(user_id, "polar")
+    if not integration or not integration.get("token"):
+        return jsonify({"error": "Polar is not connected"}), 400
+
+    token = polar_data.ensure_fresh_token(integration["token"])
+    athlete = polar_data.get_user(token)
+    exercises = polar_data.list_exercises(token)
+    normalized = [polar_data.normalize_exercise(exercise) for exercise in exercises]
+
+    integration = beta_store.save_integration(
+        user_id,
+        "polar",
+        {
+            **integration,
+            "token": token,
+            "athlete": polar_data.normalize_athlete(athlete, token),
+            "raw_athlete": athlete,
+            "recent_activities": normalized,
+            "last_sync_at": now_iso(),
         },
     )
     return jsonify(

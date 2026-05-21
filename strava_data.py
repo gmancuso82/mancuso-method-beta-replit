@@ -97,17 +97,35 @@ def get_athlete(token_payload: dict) -> dict:
     return response.json()
 
 
-def get_activities(token_payload: dict, days: int = 14, per_page: int = 30) -> list[dict]:
+def get_activities(
+    token_payload: dict,
+    days: int = 45,
+    per_page: int = 100,
+    max_pages: int = 5,
+) -> list[dict]:
     token_payload = ensure_fresh_token(token_payload)
     after = int((datetime.now(timezone.utc) - timedelta(days=days)).timestamp())
-    response = requests.get(
-        f"{API_BASE}/athlete/activities",
-        headers=_headers(token_payload),
-        params={"after": after, "per_page": per_page, "page": 1},
-        timeout=20,
+    activities = []
+    for page in range(1, max_pages + 1):
+        response = requests.get(
+            f"{API_BASE}/athlete/activities",
+            headers=_headers(token_payload),
+            params={"after": after, "per_page": per_page, "page": page},
+            timeout=20,
+        )
+        response.raise_for_status()
+        batch = response.json()
+        if not batch:
+            break
+        activities.extend(batch)
+        if len(batch) < per_page:
+            break
+
+    return sorted(
+        activities,
+        key=lambda activity: activity.get("start_date_local") or activity.get("start_date") or "",
+        reverse=True,
     )
-    response.raise_for_status()
-    return response.json()
 
 
 def normalize_activity(activity: dict) -> dict:

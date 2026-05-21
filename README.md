@@ -63,6 +63,22 @@ For Replit, `APP_BASE_URL` should be the Replit app URL and the Strava app callb
 {APP_BASE_URL}/api/integrations/strava/callback
 ```
 
+## Polar Setup
+
+Create a Polar AccessLink application, then set these environment variables locally or as Replit secrets:
+
+```bash
+POLAR_CLIENT_ID=your_client_id
+POLAR_CLIENT_SECRET=your_client_secret
+APP_BASE_URL=http://127.0.0.1:5002
+```
+
+For local testing, the Polar redirect URL should be:
+
+```text
+http://127.0.0.1:5002/api/integrations/polar/callback
+```
+
 ## Run Locally
 
 ```bash

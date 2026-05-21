@@ -525,7 +525,7 @@
                   <label class="connect-name"><input type="checkbox" value="Polar"> Polar</label>
                   <div class="connect-meta">Heart rate, training sessions, intensity, and effort context</div>
                 </div>
-                <button class="connect-button" type="button" data-provider="Polar">Planned</button>
+                <button class="connect-button" type="button" data-provider="Polar" id="polarButton">Connect</button>
               </div>
               <div class="connect-item">
                 <div>
@@ -864,6 +864,10 @@
           connectOrSyncStrava();
           return;
         }
+        if (provider === "Polar") {
+          connectOrSyncPolar();
+          return;
+        }
 
         el("connectStatus").textContent = `${provider} selected. This provider is planned after Strava.`;
         setStatus(`${provider} planned`);
@@ -877,7 +881,7 @@
         const status = await response.json();
         if (status.strava && status.strava.connected) {
           el("connectStatus").textContent = "Syncing latest Strava activities...";
-          const data = await postJSON(`${API}/api/integrations/strava/sync`, {user_id: userId, days: 21});
+          const data = await postJSON(`${API}/api/integrations/strava/sync`, {user_id: userId, days: 45});
           el("connectStatus").textContent = `Strava synced: ${data.count} recent activities found.`;
           setStatus("Strava synced");
           return;
@@ -886,6 +890,25 @@
       } catch (err) {
         el("connectStatus").textContent = err.message;
         setStatus("Strava issue");
+      }
+    }
+
+    async function connectOrSyncPolar() {
+      setStatus("Checking Polar");
+      try {
+        const response = await fetch(`${API}/api/integrations/status/${userId}`);
+        const status = await response.json();
+        if (status.polar && status.polar.connected) {
+          el("connectStatus").textContent = "Syncing latest Polar training...";
+          const data = await postJSON(`${API}/api/integrations/polar/sync`, {user_id: userId});
+          el("connectStatus").textContent = `Polar synced: ${data.count} recent exercises found.`;
+          setStatus("Polar synced");
+          return;
+        }
+        window.location.href = `${API}/api/integrations/polar/connect?user_id=${encodeURIComponent(userId)}`;
+      } catch (err) {
+        el("connectStatus").textContent = err.message;
+        setStatus("Polar issue");
       }
     }
 
@@ -902,6 +925,18 @@
           const checkbox = document.querySelector('#dataSources input[value="Strava"]');
           if (checkbox) checkbox.checked = true;
           if (athlete.sex && !val("sex")) el("sex").value = athlete.sex;
+          if (athlete.weight && !val("weight")) el("weight").value = athlete.weight;
+          updateMetrics();
+        }
+        if (data.polar && data.polar.connected) {
+          const athlete = data.polar.athlete || {};
+          el("connectStatus").textContent = `Polar connected${athlete.name ? ` for ${athlete.name}` : ""}.`;
+          el("polarButton").textContent = "Sync";
+          const checkbox = document.querySelector('#dataSources input[value="Polar"]');
+          if (checkbox) checkbox.checked = true;
+          if (athlete.sex && !val("sex")) el("sex").value = athlete.sex;
+          if (athlete.age && !val("age")) el("age").value = athlete.age;
+          if (athlete.height && !val("height")) el("height").value = athlete.height;
           if (athlete.weight && !val("weight")) el("weight").value = athlete.weight;
           updateMetrics();
         }
