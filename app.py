@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
+from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, request, send_from_directory
 from flask_cors import CORS
+
+load_dotenv()
 
 import beta_coach
 import beta_store
@@ -27,9 +31,27 @@ def enrich_checkin_with_integrations(user_id: str, checkin: dict) -> dict:
     return enriched
 
 
+def refresh_memory(user_id: str, checkin: dict | None, messages: list[dict] | None, feedback: dict | None = None) -> None:
+    if not os.getenv("ANTHROPIC_API_KEY", "").strip():
+        return
+    profile = beta_store.get_profile(user_id)
+    if not profile:
+        return
+    try:
+        updated = beta_coach.update_memory_summary(profile, checkin, messages or [], feedback)
+        beta_store.update_memory(user_id, updated)
+    except Exception as exc:
+        print(f"Memory update skipped for {user_id}: {exc}")
+
+
 @app.get("/")
 def index():
     return send_from_directory(STATIC_DIR, "beta.html")
+
+
+@app.get("/admin")
+def admin():
+    return send_from_directory(STATIC_DIR, "admin.html")
 
 
 @app.get("/health")
@@ -40,6 +62,18 @@ def health():
 @app.get("/api/users")
 def users():
     return jsonify({"users": beta_store.list_profiles()})
+
+
+@app.get("/api/admin/overview")
+def admin_overview():
+    return jsonify(
+        {
+            "users": beta_store.list_profiles(),
+            "checkins": beta_store.list_checkins(),
+            "conversations": beta_store.list_conversations(),
+            "feedback": beta_store.list_feedback(),
+        }
+    )
 
 
 @app.get("/api/integrations/status/<user_id>")
@@ -54,6 +88,7 @@ def integration_status(user_id: str):
                 "last_sync_at": (strava or {}).get("last_sync_at"),
                 "recent_activities": (strava or {}).get("recent_activities", []),
             },
+            "polar": {"connected": False, "planned": True},
             "apple_health": {"connected": False, "planned": True},
             "apple_watch": {"connected": False, "planned": True},
             "oura": {"connected": False, "planned": True},
@@ -228,6 +263,7 @@ def chat():
     reply = beta_coach.chat_reply(profile, checkin, beta_store.recent_checkins(user_id), messages)
     messages.append({"role": "assistant", "content": reply})
     beta_store.save_conversation(user_id, messages, checkin.get("date"))
+    refresh_memory(user_id, checkin, messages)
     return jsonify({"reply": reply, "messages": messages})
 
 
@@ -238,6 +274,9 @@ def feedback():
     if not user_id:
         return jsonify({"error": "user_id is required"}), 400
     item = beta_store.save_feedback(user_id, payload)
+    checkin = beta_store.get_checkin(user_id)
+    messages = beta_store.get_conversation(user_id, (checkin or {}).get("date") if checkin else None)
+    refresh_memory(user_id, checkin, messages, item)
     return jsonify({"feedback": item})
 
 

@@ -522,6 +522,13 @@
               </div>
               <div class="connect-item">
                 <div>
+                  <label class="connect-name"><input type="checkbox" value="Polar"> Polar</label>
+                  <div class="connect-meta">Heart rate, training sessions, intensity, and effort context</div>
+                </div>
+                <button class="connect-button" type="button" data-provider="Polar">Planned</button>
+              </div>
+              <div class="connect-item">
+                <div>
                   <label class="connect-name"><input type="checkbox" value="Oura"> Oura</label>
                   <div class="connect-meta">Sleep, readiness, HRV, age, height, weight, sex</div>
                 </div>
@@ -576,6 +583,34 @@
 
         <section class="pane" id="checkin">
           <div class="section-title">Daily Check-in</div>
+          <p class="notice">For Strava-only testers, the coach reads synced training activity and uses the quick subjective fields below. Sleep, HRV, readiness, and wearable stress become automatic once Apple Health, Oura, WHOOP, or Garmin is connected.</p>
+
+          <div class="field">
+            <label for="data_missed">What did the data miss?</label>
+            <textarea id="data_missed" placeholder="Leave blank if Strava captured it. Add soreness, modified workouts, missed sessions, symptoms, or context the data cannot know."></textarea>
+          </div>
+          <div class="field">
+            <label for="planned_training">Planned training today</label>
+            <textarea id="planned_training" placeholder="What the athlete is considering today"></textarea>
+          </div>
+
+          <div class="grid-2">
+            <div class="field">
+              <label for="energy">Energy 1-10</label>
+              <input id="energy" type="number" min="1" max="10" step="1">
+            </div>
+            <div class="field">
+              <label for="soreness">Soreness 1-10</label>
+              <input id="soreness" type="number" min="1" max="10" step="1">
+            </div>
+          </div>
+          <div class="field">
+            <label for="stress">Life load 1-10</label>
+            <input id="stress" type="number" min="1" max="10" step="1">
+          </div>
+
+          <div class="section-title">Wearable Recovery</div>
+          <p class="notice">Optional for now. These should come from Apple Health, Oura, WHOOP, or Garmin, not Strava.</p>
           <div class="grid-2">
             <div class="field">
               <label for="sleep_hours">Sleep hours</label>
@@ -597,30 +632,16 @@
               <label for="readiness_score">Readiness score</label>
               <input id="readiness_score" type="number" min="0" max="100" step="1">
             </div>
-            <div class="field">
-              <label for="soreness">Soreness 1-10</label>
-              <input id="soreness" type="number" min="1" max="10" step="1">
+          </div>
+          <div class="field">
+            <label>Prior-day nutrition</label>
+            <div class="grid-2">
+              <input id="nutrition_calories" type="number" min="0" step="1" placeholder="Calories">
+              <input id="nutrition_protein" type="number" min="0" step="1" placeholder="Protein g">
+              <input id="nutrition_carbs" type="number" min="0" step="1" placeholder="Carbs g">
+              <input id="nutrition_fat" type="number" min="0" step="1" placeholder="Fat g">
             </div>
-          </div>
-          <div class="field">
-            <label for="stress">Stress/life load 1-10</label>
-            <input id="stress" type="number" min="1" max="10" step="1">
-          </div>
-          <div class="field">
-            <label for="workout_done">Workout already done</label>
-            <textarea id="workout_done" placeholder="What happened yesterday or today"></textarea>
-          </div>
-          <div class="field">
-            <label for="planned_training">Planned training today</label>
-            <textarea id="planned_training" placeholder="What the athlete is considering"></textarea>
-          </div>
-          <div class="field">
-            <label for="nutrition_notes">Nutrition notes</label>
-            <textarea id="nutrition_notes" placeholder="Yesterday intake, breakfast, concerns, fueling pattern"></textarea>
-          </div>
-          <div class="field">
-            <label for="cycle_note">Cycle note</label>
-            <input id="cycle_note" placeholder="Optional">
+            <textarea id="nutrition_notes" placeholder="Optional: MyFitnessPal notes, meals, hunger, skipped meals, or fueling concerns"></textarea>
           </div>
           <div class="field">
             <label for="notes">Anything else</label>
@@ -649,22 +670,22 @@
         <div class="coach-shell">
           <div class="daily-strip">
             <div class="metric">
-              <div class="metric-label">Sleep</div>
+              <div class="metric-label">Source</div>
               <div class="metric-value" id="mSleep">--</div>
-              <div class="metric-note">hours</div>
+              <div class="metric-note">connected data</div>
             </div>
             <div class="metric">
-              <div class="metric-label">HRV</div>
+              <div class="metric-label">Today</div>
               <div class="metric-value" id="mHrv">--</div>
-              <div class="metric-note">ms</div>
+              <div class="metric-note">activity status</div>
             </div>
             <div class="metric">
-              <div class="metric-label">Readiness</div>
+              <div class="metric-label">Soreness</div>
               <div class="metric-value" id="mReady">--</div>
-              <div class="metric-note">score</div>
+              <div class="metric-note">1-10</div>
             </div>
             <div class="metric">
-              <div class="metric-label">Stress</div>
+              <div class="metric-label">Life Load</div>
               <div class="metric-value" id="mStress">--</div>
               <div class="metric-note">1-10</div>
             </div>
@@ -703,8 +724,9 @@
       "name", "upcoming_event", "injury_limitations", "nutrition_restrictions",
       "coaching_style", "age", "sex", "height", "weight",
       "sleep_hours", "sleep_quality", "hrv_ms", "resting_hr", "readiness_score",
-      "soreness", "stress", "workout_done", "planned_training", "nutrition_notes",
-      "cycle_note", "notes"
+      "energy", "soreness", "stress", "data_missed", "planned_training",
+      "nutrition_calories", "nutrition_protein", "nutrition_carbs", "nutrition_fat",
+      "nutrition_notes", "notes"
     ];
 
     function el(id) { return document.getElementById(id); }
@@ -744,9 +766,10 @@
     });
 
     function updateMetrics() {
-      el("mSleep").textContent = val("sleep_hours") || "--";
-      el("mHrv").textContent = val("hrv_ms") || "--";
-      el("mReady").textContent = val("readiness_score") || "--";
+      const sources = checkedValues("dataSources");
+      el("mSleep").textContent = sources.length ? sources[0] : "--";
+      el("mHrv").textContent = val("data_missed") ? "Context" : "Synced";
+      el("mReady").textContent = val("soreness") || "--";
       el("mStress").textContent = val("stress") || "--";
       el("ageDisplay").textContent = val("age") || "Connect device";
       el("sexDisplay").textContent = val("sex") || "Connect device";
@@ -782,12 +805,16 @@
         hrv_ms: num("hrv_ms"),
         resting_hr: num("resting_hr"),
         readiness_score: num("readiness_score"),
+        energy: num("energy"),
         soreness: num("soreness"),
         stress: num("stress"),
-        workout_done: val("workout_done"),
+        data_missed: val("data_missed"),
         planned_training: val("planned_training"),
+        nutrition_calories: num("nutrition_calories"),
+        nutrition_protein: num("nutrition_protein"),
+        nutrition_carbs: num("nutrition_carbs"),
+        nutrition_fat: num("nutrition_fat"),
         nutrition_notes: val("nutrition_notes"),
-        cycle_note: val("cycle_note"),
         notes: val("notes")
       };
     }

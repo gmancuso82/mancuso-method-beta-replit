@@ -94,6 +94,21 @@ def list_profiles() -> list[dict[str, Any]]:
     return [read_json(path, {}) for path in sorted(USERS_DIR.glob("*.json"))]
 
 
+def list_checkins() -> list[dict[str, Any]]:
+    ensure_data_dirs()
+    return [read_json(path, {}) for path in sorted(CHECKINS_DIR.glob("*.json"), reverse=True)]
+
+
+def list_conversations() -> list[dict[str, Any]]:
+    ensure_data_dirs()
+    return [read_json(path, {}) for path in sorted(CONVERSATIONS_DIR.glob("*.json"), reverse=True)]
+
+
+def list_feedback() -> list[dict[str, Any]]:
+    ensure_data_dirs()
+    return [read_json(path, {}) for path in sorted(FEEDBACK_DIR.glob("*.json"), reverse=True)]
+
+
 def save_checkin(user_id: str, checkin: dict[str, Any]) -> dict[str, Any]:
     day = checkin.get("date") or today_key()
     saved = {

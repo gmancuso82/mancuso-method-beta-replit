@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mancuso Method Beta Admin</title>
+  <style>
+    :root {
+      --bg: #12130f;
+      --panel: #1b1d18;
+      --panel-2: #22251f;
+      --ink: #f2efe6;
+      --soft: #cfc7b8;
+      --muted: #898679;
+      --line: #31342b;
+      --accent: #d66d4c;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+    header {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--line);
+      background: #171914;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    h1 {
+      font-size: 19px;
+      margin: 0;
+    }
+    .sub {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    main {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      gap: 18px;
+    }
+    section {
+      border-top: 1px solid var(--line);
+      padding-top: 16px;
+    }
+    h2 {
+      font-size: 15px;
+      margin: 0 0 12px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+    }
+    article {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      padding: 13px;
+    }
+    .title {
+      font-weight: 750;
+      margin-bottom: 8px;
+    }
+    .meta {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin: 0;
+      color: var(--soft);
+      font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    button {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel-2);
+      color: var(--ink);
+      padding: 8px 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="top-row">
+      <div>
+        <h1>Mancuso Method Beta Admin</h1>
+        <div class="sub">Profiles, memory, check-ins, conversations, and feedback from local beta testing.</div>
+      </div>
+      <button id="refresh">Refresh</button>
+    </div>
+  </header>
+  <main>
+    <section>
+      <h2>Users + Memory</h2>
+      <div class="grid" id="users"></div>
+    </section>
+    <section>
+      <h2>Recent Check-ins</h2>
+      <div class="grid" id="checkins"></div>
+    </section>
+    <section>
+      <h2>Conversations</h2>
+      <div class="grid" id="conversations"></div>
+    </section>
+    <section>
+      <h2>Feedback</h2>
+      <div class="grid" id="feedback"></div>
+    </section>
+  </main>
+  <script>
+    function escapeHTML(text) {
+      return String(text).replace(/[&<>"']/g, ch => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+      }[ch]));
+    }
+
+    function render(containerId, items, titleFn, metaFn, bodyFn) {
+      const container = document.getElementById(containerId);
+      if (!items.length) {
+        container.innerHTML = `<article><div class="meta">No records yet.</div></article>`;
+        return;
+      }
+      container.innerHTML = items.map(item => `
+        <article>
+          <div class="title">${escapeHTML(titleFn(item))}</div>
+          <div class="meta">${escapeHTML(metaFn(item))}</div>
+          <pre>${escapeHTML(bodyFn(item))}</pre>
+        </article>
+      `).join("");
+    }
+
+    async function load() {
+      const response = await fetch("/api/admin/overview");
+      const data = await response.json();
+      render(
+        "users",
+        data.users || [],
+        item => item.name || item.user_id || "Unknown user",
+        item => `user_id: ${item.user_id || "unknown"} | updated: ${item.updated_at || "unknown"}`,
+        item => item.coach_memory_summary || "No memory summary yet."
+      );
+      render(
+        "checkins",
+        data.checkins || [],
+        item => `${item.user_id || "unknown"} | ${item.date || "unknown date"}`,
+        item => `energy ${item.energy ?? "N/A"} | soreness ${item.soreness ?? "N/A"} | life load ${item.stress ?? "N/A"}`,
+        item => JSON.stringify(item, null, 2)
+      );
+      render(
+        "conversations",
+        data.conversations || [],
+        item => `${item.user_id || "unknown"} | ${item.date || "unknown date"}`,
+        item => `messages: ${(item.messages || []).length} | updated: ${item.updated_at || "unknown"}`,
+        item => (item.messages || []).map(m => `${m.role}: ${m.content}`).join("\n\n")
+      );
+      render(
+        "feedback",
+        data.feedback || [],
+        item => `${item.user_id || "unknown"} | ${item.date || "unknown date"}`,
+        item => `items: ${(item.items || []).length}`,
+        item => JSON.stringify(item.items || [], null, 2)
+      );
+    }
+
+    document.getElementById("refresh").addEventListener("click", load);
+    load();
+  </script>
+</body>
+</html>

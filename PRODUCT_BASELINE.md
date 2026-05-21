@@ -41,6 +41,10 @@ Then the user talks to the coach.
 7. The app should learn each user's personal hierarchy of signals.
 8. The app should preserve memory over time so coaching improves across weeks.
 
+## Future Coaching Intelligence Notes
+
+- The coach should know what time the briefing is being generated and use that in context. Example: if the briefing is pulled at 2pm and a planned morning spin class has not been logged, the coach should not talk as if the athlete is still likely to do that morning session. It should recognize that the planned window probably passed, ask what happened if needed, and adjust the rest of the day accordingly.
+
 ## Personal Signal Hierarchy
 
 The app should not assume one device is the universal source of truth.
@@ -58,7 +62,8 @@ For Gina right now, the working hypothesis is:
 
 - Sleep may be strongest from Garmin
 - Readiness may be strongest from Oura
-- Training/activity may come from Garmin and Strava
+- Training/activity may come from Garmin, Strava, and Polar
+- Heart-rate effort context may be strongest from Polar for early testers who use it
 - Apple Health may become the best long-term body/profile bridge
 - Subjective hip status from conversation is critical and cannot be replaced by a wearable
 
@@ -66,11 +71,13 @@ For another athlete, the hierarchy may be completely different.
 
 ## Integration Roadmap
 
-1. Strava first for the first beta users.
-2. Plan Apple Health and Apple Watch now because they are essential to the broader consumer product.
-3. Add Oura for sleep, readiness, HRV, temperature, and profile context.
-4. Add WHOOP for recovery, strain, sleep, and body measurement data.
-5. Add Garmin later, with the understanding that serious/pro beta users may tolerate daily MFA/code entry if the coaching value is high enough.
+1. Strava first for activity sync and low-friction test-user onboarding.
+2. Polar in the first rollout for users who have it, because heart-rate effort and intensity context can be more coaching-relevant than activity type alone.
+3. Oura for sleep, readiness, HRV, temperature, and profile context.
+4. WHOOP for recovery, strain, sleep, and body measurement data.
+5. Plan Apple Health and Apple Watch in parallel because they are essential to the broader consumer product, but technically more complex than OAuth web integrations.
+6. Add Garmin later, with the understanding that serious/pro beta users may tolerate daily MFA/code entry if the coaching value is high enough.
+7. Start nutrition manually with prior-day calories, protein, carbs, and fat; evaluate food integrations after the coaching loop works.
 
 ## What Makes This Different
 

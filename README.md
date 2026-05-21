@@ -7,10 +7,11 @@ This is intentionally separate from Gina's personal `health-llm` Python coach. I
 ## What It Does
 
 - Creates a lightweight athlete profile only for data the connected apps cannot infer
-- Starts from connectable fitness sources: Strava, Oura, Apple Watch, and Apple Health
-- Uses device/app data as the source of truth for demographics, workouts, sleep, recovery, and trends when available
+- Starts from connectable fitness sources: Strava first, Polar next, then Oura/WHOOP/Apple Health
+- Uses device/app data as the source of truth when available, and clearly separates synced data from manual context
 - Generates a daily morning briefing as the main experience
 - Supports follow-up coach chat in a mostly conversational interface
+- Preserves a durable coach memory summary on each athlete profile
 - Can deliver weekly schedule and nutrition guidance through chat instead of dashboard-heavy screens
 - Saves feedback for product learning
 - Stores beta data as local JSON under `data/`
@@ -26,10 +27,25 @@ See [PRODUCT_BASELINE.md](PRODUCT_BASELINE.md) for the product principles that s
 ## Integration Roadmap
 
 1. **Strava first** — first beta users can connect Strava so the coach can read recent workouts, sport type, distance, duration, pace, heart rate when available, sex, and weight when available.
-2. **Apple Health / Apple Watch planning now** — Apple HealthKit is the long-term path for Apple Watch profile, workout, sleep, and heart data. Web beta can use Strava as the bridge while the native HealthKit path is planned.
-3. **Oura next** — Oura OAuth can add readiness, sleep, HRV, temperature, age, height, weight, and biological sex through Oura API scopes.
+2. **Polar next** — early testers with Polar can provide stronger heart-rate, effort, and intensity context than Strava alone.
+3. **Oura next** — Oura OAuth can add readiness, sleep, HRV, temperature, and recovery context.
 4. **WHOOP after Oura** — WHOOP OAuth can add recovery, strain, sleep, workout, profile, and body measurement data.
-5. **Garmin later / pro-athlete beta exception** — Garmin is difficult for hosted beta because of MFA and IP limits. For a professional athlete in beta, daily code entry is acceptable if the value is high enough.
+5. **Apple Health / Apple Watch parallel plan** — Apple HealthKit is the long-term path for Apple Watch profile, workout, sleep, and heart data, but it is more complex than web OAuth integrations.
+6. **Garmin later / pro-athlete beta exception** — Garmin is difficult for hosted beta because of MFA and IP limits. For a professional athlete in beta, daily code entry is acceptable if the value is high enough.
+
+## Beta V1 Check-in
+
+Until recovery integrations are connected, the beta asks for:
+
+- Energy 1-10
+- Soreness 1-10
+- Life load 1-10
+- Prior-day calories
+- Prior-day protein, carbs, and fat
+- Planned training
+- What the synced data missed
+
+The coach must not infer sleep, readiness, HRV, or stress from Strava.
 
 ## Strava Setup
 
@@ -51,10 +67,9 @@ For Replit, `APP_BASE_URL` should be the Replit app URL and the Strava app callb
 
 ```bash
 cd /Users/ginamancuso/Documents/Codex/mancuso-method-beta
-python3 -m venv .venv
+/opt/miniconda3/bin/python3.13 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-export ANTHROPIC_API_KEY=your_key_here
 python app.py
 ```
 
@@ -64,11 +79,25 @@ Open:
 http://127.0.0.1:5002
 ```
 
+Admin review page:
+
+```text
+http://127.0.0.1:5002/admin
+```
+
 If `ANTHROPIC_API_KEY` is not set, the app runs in demo mode.
+
+For local live coaching, create a private `.env` file from `.env.example` and add `ANTHROPIC_API_KEY`.
 
 ## Replit
 
-Import this folder as a separate Replit project. Add `ANTHROPIC_API_KEY` as a Replit secret.
+Import this folder as a separate Replit project. Add `ANTHROPIC_API_KEY` as a Replit secret. Add Strava secrets when testing Strava connection:
+
+```bash
+STRAVA_CLIENT_ID=your_client_id
+STRAVA_CLIENT_SECRET=your_client_secret
+APP_BASE_URL=your_replit_app_url
+```
 
 Suggested run command:
 
