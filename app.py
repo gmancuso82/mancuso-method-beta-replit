@@ -90,6 +90,7 @@ def admin_overview():
             "checkins": beta_store.list_checkins(),
             "conversations": beta_store.list_conversations(),
             "feedback": beta_store.list_feedback(),
+            "integrations": beta_store.list_integration_summaries(),
         }
     )
 

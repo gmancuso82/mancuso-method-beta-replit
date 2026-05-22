@@ -109,6 +109,30 @@ def list_feedback() -> list[dict[str, Any]]:
     return [read_json(path, {}) for path in sorted(FEEDBACK_DIR.glob("*.json"), reverse=True)]
 
 
+def list_integration_summaries() -> list[dict[str, Any]]:
+    ensure_data_dirs()
+    summaries = []
+    for path in sorted(INTEGRATIONS_DIR.glob("*.json")):
+        if path.name.startswith("oauth_state__"):
+            continue
+        payload = read_json(path, {})
+        activities = payload.get("recent_activities") or []
+        athlete = payload.get("athlete") or {}
+        summaries.append(
+            {
+                "user_id": payload.get("user_id"),
+                "provider": payload.get("provider"),
+                "connected": bool(payload.get("token")),
+                "athlete_name": athlete.get("name"),
+                "last_sync_at": payload.get("last_sync_at"),
+                "activity_count": len(activities),
+                "latest_activity": activities[0] if activities else None,
+                "updated_at": payload.get("updated_at"),
+            }
+        )
+    return summaries
+
+
 def save_checkin(user_id: str, checkin: dict[str, Any]) -> dict[str, Any]:
     day = checkin.get("date") or today_key()
     saved = {

@@ -92,6 +92,42 @@
       font-weight: 700;
       cursor: pointer;
     }
+    a {
+      color: var(--ink);
+      text-decoration: none;
+    }
+    .link-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .link-card {
+      display: inline-flex;
+      align-items: center;
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      padding: 9px 11px;
+      color: var(--soft);
+      font-size: 13px;
+      font-weight: 750;
+    }
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .pill {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 7px;
+      color: var(--soft);
+      background: var(--panel-2);
+      font-size: 11px;
+      font-weight: 750;
+    }
     .top-row {
       display: flex;
       align-items: center;
@@ -112,8 +148,19 @@
   </header>
   <main>
     <section>
+      <h2>Tester Links</h2>
+      <div class="link-row">
+        <a class="link-card" id="freshLink" href="/?new=1">Fresh tester profile</a>
+        <a class="link-card" href="/">Last local profile</a>
+      </div>
+    </section>
+    <section>
       <h2>Users + Memory</h2>
       <div class="grid" id="users"></div>
+    </section>
+    <section>
+      <h2>Connected Sources</h2>
+      <div class="grid" id="integrations"></div>
     </section>
     <section>
       <h2>Recent Check-ins</h2>
@@ -150,15 +197,51 @@
       `).join("");
     }
 
+    function groupedIntegrations(items) {
+      return (items || []).reduce((acc, item) => {
+        const userId = item.user_id || "unknown";
+        acc[userId] = acc[userId] || [];
+        acc[userId].push(item);
+        return acc;
+      }, {});
+    }
+
+    function userLink(userId) {
+      return `${window.location.origin}/?user_id=${encodeURIComponent(userId)}`;
+    }
+
     async function load() {
       const response = await fetch("/api/admin/overview");
       const data = await response.json();
+      const byUser = groupedIntegrations(data.integrations || []);
+      document.getElementById("freshLink").href = `${window.location.origin}/?new=1`;
       render(
         "users",
         data.users || [],
         item => item.name || item.user_id || "Unknown user",
         item => `user_id: ${item.user_id || "unknown"} | updated: ${item.updated_at || "unknown"}`,
-        item => item.coach_memory_summary || "No memory summary yet."
+        item => {
+          const integrations = byUser[item.user_id] || [];
+          const sources = integrations.length
+            ? integrations.map(src => `${src.provider}: ${src.connected ? "connected" : "not connected"} (${src.activity_count || 0} activities)`).join("\n")
+            : "No connected sources yet.";
+          return [
+            `Open profile: ${userLink(item.user_id || "")}`,
+            `Goals: ${(item.fitness_goals || []).join(", ") || "none"}`,
+            `Event: ${item.upcoming_event || "none"}`,
+            `Schedule: ${item.weekly_training_plan || "not entered"}`,
+            `Sources:\n${sources}`,
+            "",
+            item.coach_memory_summary || "No memory summary yet.",
+          ].join("\n");
+        }
+      );
+      render(
+        "integrations",
+        data.integrations || [],
+        item => `${item.user_id || "unknown"} | ${item.provider || "unknown source"}`,
+        item => `connected: ${item.connected ? "yes" : "no"} | synced: ${item.last_sync_at || "not synced"} | activities: ${item.activity_count || 0}`,
+        item => item.latest_activity ? JSON.stringify(item.latest_activity, null, 2) : "No synced activities yet."
       );
       render(
         "checkins",

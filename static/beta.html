@@ -95,6 +95,16 @@
       border-radius: 50%;
       background: var(--ok);
     }
+    .header-action {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      color: var(--soft);
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+    }
 
     main {
       display: grid;
@@ -439,6 +449,7 @@
         <div class="brand-sub" id="subtitle">No athlete loaded</div>
       </div>
       <div class="status"><span class="status-dot"></span><span id="status">Ready</span></div>
+      <a class="header-action" href="/?new=1">New profile</a>
     </header>
 
     <main>
@@ -721,7 +732,8 @@
   <script>
     const API = "";
     const params = new URLSearchParams(window.location.search);
-    let userId = params.get("user_id") || localStorage.getItem("mm_beta_user_id") || "";
+    if (params.get("new") === "1") localStorage.removeItem("mm_beta_user_id");
+    let userId = params.get("new") === "1" ? "" : (params.get("user_id") || localStorage.getItem("mm_beta_user_id") || "");
     let lastRating = "";
     if (userId) localStorage.setItem("mm_beta_user_id", userId);
 

@@ -95,11 +95,19 @@ Open:
 http://127.0.0.1:5002
 ```
 
+Fresh local tester profile:
+
+```text
+http://127.0.0.1:5002/?new=1
+```
+
 Admin review page:
 
 ```text
 http://127.0.0.1:5002/admin
 ```
+
+For hosted testing, send the Replit equivalent of the fresh tester link to each new tester. The admin page shows profiles, connected sources, check-ins, conversations, and feedback.
 
 If `ANTHROPIC_API_KEY` is not set, the app runs in demo mode.
 
