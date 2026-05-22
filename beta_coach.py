@@ -41,6 +41,33 @@ def _format_recent_checkins(checkins: list[dict[str, Any]]) -> str:
     return "\n\n".join(lines)
 
 
+def _parse_date(value: str | None) -> date:
+    if not value:
+        return date.today()
+    try:
+        return date.fromisoformat(value[:10])
+    except ValueError:
+        return date.today()
+
+
+def _date_label(value: str | None) -> str:
+    day = _parse_date(value)
+    return day.strftime("%A, %B %-d, %Y")
+
+
+def _schedule_context(profile: dict[str, Any], today: str) -> str:
+    day = _parse_date(today)
+    tomorrow = day + timedelta(days=1)
+    return "\n".join(
+        [
+            f"Today weekday: {day.strftime('%A')}",
+            f"Tomorrow: {tomorrow.strftime('%A, %B %-d, %Y')}",
+            f"Training days: {_format_list(profile.get('training_days'))}",
+            f"Weekly training plan: {profile.get('weekly_training_plan') or 'Not provided'}",
+        ]
+    )
+
+
 def format_nutrition(checkin: dict[str, Any]) -> str:
     macros = []
     if checkin.get("nutrition_calories") is not None:
@@ -113,6 +140,7 @@ ATHLETE PROFILE:
 - Primary fitness goals: {_format_list(profile.get('fitness_goals'))}
 - Upcoming event: {profile.get('upcoming_event') or 'None reported'}
 - Training days: {_format_list(profile.get('training_days'))}
+- Weekly training plan: {profile.get('weekly_training_plan') or 'Not provided'}
 - Wearables/data sources: {_format_list(profile.get('data_sources'))}
 - Injuries/limitations: {profile.get('injury_limitations') or 'None reported'}
 - Nutrition restrictions: {profile.get('nutrition_restrictions') or 'None reported'}
@@ -137,7 +165,7 @@ def build_briefing_prompt(profile: dict[str, Any], checkin: dict[str, Any], rece
     return f"""
 Generate today's Mancuso Method daily briefing for {profile.get('name') or 'this athlete'}.
 
-TODAY: {today}
+TODAY: {_date_label(today)} ({today})
 
 DATA SOURCE RULES:
 - Strava provides training/activity context only. It does not provide sleep, HRV, readiness, or wearable stress.
@@ -148,6 +176,9 @@ DATA SOURCE RULES:
 - Do not say a workout is completed today unless Strava activity date equals TODAY or the user manually says it was completed today.
 - Manual context is not wearable data. Treat it as user-reported context.
 - Do not mention sex, weight, or age unless directly relevant to coaching. They are background physiological context, not a headline.
+- Use the weekly training plan when deciding whether tomorrow should be recovery, training, PT, or race-specific work.
+- If the athlete has already completed today's planned session, explain how the rest of today supports the next scheduled session.
+- Do not contradict the schedule. If tomorrow is a planned workout day but recovery signals are questionable, say "modify tomorrow's planned session" rather than calling it a full rest day.
 
 WEARABLE RECOVERY DATA AVAILABLE: {"Yes" if has_wearable_recovery else "No"}
 
@@ -157,6 +188,9 @@ CONNECTED ATHLETE PROFILE:
 - Sex: {connected_athlete.get('sex') or profile.get('sex') or 'Not connected'}
 - Weight: {connected_athlete.get('weight') or profile.get('weight') or 'Not connected'}
 - Age: {profile.get('age') or 'Not connected yet'}
+
+SCHEDULE CONTEXT:
+{_schedule_context(profile, today)}
 
 MANUAL CHECK-IN:
 - Sleep hours: {checkin.get('sleep_hours', 'N/A')}
