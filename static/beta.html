@@ -887,41 +887,41 @@
     });
 
     async function connectOrSyncStrava() {
-      setStatus("Checking Strava");
-      try {
-        const response = await fetch(`${API}/api/integrations/status/${userId}`);
-        const status = await response.json();
-        if (status.strava && status.strava.connected) {
+      if (el("stravaButton").textContent === "Sync") {
+        setStatus("Syncing Strava");
+        try {
           el("connectStatus").textContent = "Syncing latest Strava activities...";
           const data = await postJSON(`${API}/api/integrations/strava/sync`, {user_id: userId, days: 45});
           el("connectStatus").textContent = `Strava synced: ${data.count} recent activities found.`;
           setStatus("Strava synced");
-          return;
+        } catch (err) {
+          el("connectStatus").textContent = err.message;
+          setStatus("Strava issue");
         }
-        window.location.href = `${API}/api/integrations/strava/connect?user_id=${encodeURIComponent(userId)}`;
-      } catch (err) {
-        el("connectStatus").textContent = err.message;
-        setStatus("Strava issue");
+        return;
       }
+      setStatus("Opening Strava");
+      el("connectStatus").textContent = "Opening Strava authorization...";
+      window.top.location.href = `${API}/api/integrations/strava/connect?user_id=${encodeURIComponent(userId)}`;
     }
 
     async function connectOrSyncPolar() {
-      setStatus("Checking Polar");
-      try {
-        const response = await fetch(`${API}/api/integrations/status/${userId}`);
-        const status = await response.json();
-        if (status.polar && status.polar.connected) {
+      if (el("polarButton").textContent === "Sync") {
+        setStatus("Syncing Polar");
+        try {
           el("connectStatus").textContent = "Syncing latest Polar training...";
           const data = await postJSON(`${API}/api/integrations/polar/sync`, {user_id: userId});
           el("connectStatus").textContent = `Polar synced: ${data.count} recent exercises found.`;
           setStatus("Polar synced");
-          return;
+        } catch (err) {
+          el("connectStatus").textContent = err.message;
+          setStatus("Polar issue");
         }
-        window.location.href = `${API}/api/integrations/polar/connect?user_id=${encodeURIComponent(userId)}`;
-      } catch (err) {
-        el("connectStatus").textContent = err.message;
-        setStatus("Polar issue");
+        return;
       }
+      setStatus("Opening Polar");
+      el("connectStatus").textContent = "Opening Polar authorization...";
+      window.top.location.href = `${API}/api/integrations/polar/connect?user_id=${encodeURIComponent(userId)}`;
     }
 
     async function refreshIntegrationStatus() {
