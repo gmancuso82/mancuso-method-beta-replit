@@ -107,6 +107,20 @@ def integration_diagnostics():
     )
 
 
+@app.get("/api/integrations/strava/debug-url")
+def strava_debug_url():
+    user_id = request.args.get("user_id", "debug-user").strip() or "debug-user"
+    state = beta_store.create_oauth_state(user_id, "strava")
+    callback_url = oauth_callback_url("strava")
+    return jsonify(
+        {
+            "configured": strava_data.configured(),
+            "callback_url": callback_url,
+            "authorize_url": strava_data.authorize_url(state, callback_url) if strava_data.configured() else None,
+        }
+    )
+
+
 @app.get("/api/users")
 def users():
     return jsonify({"users": beta_store.list_profiles()})

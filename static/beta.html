@@ -589,7 +589,7 @@
           <input id="weight" type="hidden">
 
           <button class="primary" id="saveProfile">Save Profile</button>
-          <p class="notice">Profile setup captures only what connected data cannot reliably infer.</p>
+          <p class="notice" id="profileSaveStatus">Profile setup captures only what connected data cannot reliably infer.</p>
         </section>
 
         <section class="pane" id="checkin">
@@ -854,7 +854,8 @@
         localStorage.setItem("mm_beta_user_id", userId);
         updateSubtitle();
         setStatus("Profile saved");
-        document.querySelector('[data-tab="checkin"]').click();
+        el("profileSaveStatus").textContent = "Profile saved. Connect Strava or Polar here, then move to daily check-in.";
+        el("connectStatus").textContent = "Profile saved. Ready to connect a device.";
       } catch (err) {
         setStatus(err.message);
       }
