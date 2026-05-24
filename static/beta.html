@@ -252,6 +252,21 @@
       font-size: 12px;
       font-weight: 750;
     }
+    .connect-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .disconnect-button {
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: var(--radius);
+      background: transparent;
+      color: var(--muted);
+      padding: 7px 9px;
+      font-size: 12px;
+      font-weight: 750;
+      display: none;
+    }
 
     .readonly-grid {
       display: grid;
@@ -529,14 +544,20 @@
                   <label class="connect-name"><input type="checkbox" value="Strava"> Strava</label>
                   <div class="connect-meta">Workouts, sport type, distance, pace, HR when available</div>
                 </div>
-                <button class="connect-button" type="button" data-provider="Strava" id="stravaButton">Connect</button>
+                <div class="connect-actions">
+                  <button class="connect-button" type="button" data-provider="Strava" id="stravaButton">Connect</button>
+                  <button class="disconnect-button" type="button" data-provider="strava" id="stravaDisconnect">Disconnect</button>
+                </div>
               </div>
               <div class="connect-item">
                 <div>
                   <label class="connect-name"><input type="checkbox" value="Polar"> Polar</label>
                   <div class="connect-meta">Heart rate, training sessions, intensity, and effort context</div>
                 </div>
-                <button class="connect-button" type="button" data-provider="Polar" id="polarButton">Connect</button>
+                <div class="connect-actions">
+                  <button class="connect-button" type="button" data-provider="Polar" id="polarButton">Connect</button>
+                  <button class="disconnect-button" type="button" data-provider="polar" id="polarDisconnect">Disconnect</button>
+                </div>
               </div>
               <div class="connect-item">
                 <div>
@@ -887,6 +908,28 @@
       });
     });
 
+    document.querySelectorAll(".disconnect-button").forEach(button => {
+      button.addEventListener("click", async () => {
+        if (!userId) return;
+        const provider = button.dataset.provider;
+        setStatus(`Disconnecting ${provider}`);
+        try {
+          await postJSON(`${API}/api/integrations/${provider}/disconnect`, {user_id: userId});
+          const display = provider === "strava" ? "Strava" : "Polar";
+          const checkbox = document.querySelector(`#dataSources input[value="${display}"]`);
+          if (checkbox) checkbox.checked = false;
+          el(`${provider}Button`).textContent = "Connect";
+          el(`${provider}Disconnect`).style.display = "none";
+          el("connectStatus").textContent = `${display} disconnected for this profile. To switch accounts, log out of ${display} in the browser before reconnecting.`;
+          setStatus(`${display} disconnected`);
+          updateMetrics();
+        } catch (err) {
+          el("connectStatus").textContent = err.message;
+          setStatus("Disconnect failed");
+        }
+      });
+    });
+
     async function connectOrSyncStrava() {
       if (el("stravaButton").textContent === "Sync") {
         setStatus("Syncing Strava");
@@ -935,6 +978,7 @@
           const athlete = data.strava.athlete || {};
           el("connectStatus").textContent = `Strava connected${athlete.name ? ` for ${athlete.name}` : ""}.`;
           el("stravaButton").textContent = "Sync";
+          el("stravaDisconnect").style.display = "inline-block";
           const checkbox = document.querySelector('#dataSources input[value="Strava"]');
           if (checkbox) checkbox.checked = true;
           if (athlete.sex && !val("sex")) el("sex").value = athlete.sex;
@@ -945,6 +989,7 @@
           const athlete = data.polar.athlete || {};
           el("connectStatus").textContent = `Polar connected${athlete.name ? ` for ${athlete.name}` : ""}.`;
           el("polarButton").textContent = "Sync";
+          el("polarDisconnect").style.display = "inline-block";
           const checkbox = document.querySelector('#dataSources input[value="Polar"]');
           if (checkbox) checkbox.checked = true;
           if (athlete.sex && !val("sex")) el("sex").value = athlete.sex;

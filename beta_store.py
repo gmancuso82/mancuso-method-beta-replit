@@ -211,6 +211,14 @@ def get_integration(user_id: str, provider: str) -> dict[str, Any] | None:
     return read_json(integration_path(user_id, provider), None)
 
 
+def delete_integration(user_id: str, provider: str) -> bool:
+    path = integration_path(user_id, provider)
+    if not path.exists():
+        return False
+    path.unlink()
+    return True
+
+
 def create_oauth_state(user_id: str, provider: str) -> str:
     state = secrets.token_urlsafe(24)
     write_json(

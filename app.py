@@ -168,6 +168,27 @@ def integration_status(user_id: str):
     )
 
 
+@app.post("/api/integrations/<provider>/disconnect")
+def disconnect_integration(provider: str):
+    payload = request.get_json(force=True)
+    user_id = payload.get("user_id", "").strip()
+    if not user_id:
+        return jsonify({"error": "user_id is required"}), 400
+
+    provider_key = provider.lower().strip()
+    if provider_key not in {"strava", "polar"}:
+        return jsonify({"error": f"{provider} disconnect is not supported yet"}), 400
+
+    removed = beta_store.delete_integration(user_id, provider_key)
+    profile = beta_store.get_profile(user_id) or {"user_id": user_id}
+    source_name = {"strava": "Strava", "polar": "Polar"}[provider_key]
+    profile["data_sources"] = [
+        source for source in profile.get("data_sources", []) if source != source_name
+    ]
+    beta_store.save_profile(profile)
+    return jsonify({"disconnected": removed, "provider": provider_key, "profile": profile})
+
+
 @app.get("/api/integrations/strava/connect")
 def strava_connect():
     user_id = request.args.get("user_id", "").strip()
