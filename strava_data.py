@@ -34,13 +34,13 @@ def configured() -> bool:
     return bool(_client_id() and _client_secret())
 
 
-def authorize_url(state: str) -> str:
+def authorize_url(state: str, callback_url: str | None = None) -> str:
     if not _client_id():
         raise RuntimeError("Missing STRAVA_CLIENT_ID")
     params = {
         "client_id": _client_id(),
         "response_type": "code",
-        "redirect_uri": redirect_uri(),
+        "redirect_uri": callback_url or redirect_uri(),
         "approval_prompt": "auto",
         "scope": DEFAULT_SCOPE,
         "state": state,

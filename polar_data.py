@@ -35,13 +35,13 @@ def configured() -> bool:
     return bool(_client_id() and _client_secret())
 
 
-def authorize_url(state: str) -> str:
+def authorize_url(state: str, callback_url: str | None = None) -> str:
     if not _client_id():
         raise RuntimeError("Missing POLAR_CLIENT_ID")
     params = {
         "response_type": "code",
         "client_id": _client_id(),
-        "redirect_uri": redirect_uri(),
+        "redirect_uri": callback_url or redirect_uri(),
         "scope": os.getenv("POLAR_SCOPE", DEFAULT_SCOPE),
         "state": state,
     }
@@ -53,11 +53,11 @@ def _basic_auth_header() -> str:
     return "Basic " + base64.b64encode(raw).decode("ascii")
 
 
-def exchange_code(code: str) -> dict:
+def exchange_code(code: str, callback_url: str | None = None) -> dict:
     response = requests.post(
         TOKEN_URL,
         headers={"Authorization": _basic_auth_header()},
-        data={"grant_type": "authorization_code", "code": code, "redirect_uri": redirect_uri()},
+        data={"grant_type": "authorization_code", "code": code, "redirect_uri": callback_url or redirect_uri()},
         timeout=20,
     )
     if not response.ok:

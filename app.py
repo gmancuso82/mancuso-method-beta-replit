@@ -7,6 +7,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, request, send_from_directory
 from flask_cors import CORS
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 load_dotenv()
 
@@ -20,7 +21,19 @@ ROOT = Path(__file__).resolve().parent
 STATIC_DIR = ROOT / "static"
 
 app = Flask(__name__, static_folder=str(STATIC_DIR))
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 CORS(app)
+
+
+def external_base_url() -> str:
+    configured = os.getenv("APP_BASE_URL", "").strip()
+    if configured:
+        return configured.rstrip("/")
+    return request.url_root.rstrip("/")
+
+
+def oauth_callback_url(provider: str) -> str:
+    return f"{external_base_url()}/api/integrations/{provider}/callback"
 
 
 def enrich_checkin_with_integrations(user_id: str, checkin: dict) -> dict:
@@ -75,6 +88,23 @@ def admin():
 @app.get("/health")
 def health():
     return jsonify({"status": "ok", "app": "mancuso-method-beta"})
+
+
+@app.get("/api/integrations/diagnostics")
+def integration_diagnostics():
+    return jsonify(
+        {
+            "app_base_url": external_base_url(),
+            "strava": {
+                "configured": strava_data.configured(),
+                "callback_url": oauth_callback_url("strava"),
+            },
+            "polar": {
+                "configured": polar_data.configured(),
+                "callback_url": oauth_callback_url("polar"),
+            },
+        }
+    )
 
 
 @app.get("/api/users")
@@ -132,7 +162,7 @@ def strava_connect():
     if not strava_data.configured():
         return jsonify({"error": "Missing STRAVA_CLIENT_ID or STRAVA_CLIENT_SECRET"}), 400
     state = beta_store.create_oauth_state(user_id, "strava")
-    return redirect(strava_data.authorize_url(state))
+    return redirect(strava_data.authorize_url(state, oauth_callback_url("strava")))
 
 
 @app.get("/api/integrations/strava/callback")
@@ -193,7 +223,7 @@ def polar_connect():
     if not polar_data.configured():
         return jsonify({"error": "Missing POLAR_CLIENT_ID or POLAR_CLIENT_SECRET"}), 400
     state = beta_store.create_oauth_state(user_id, "polar")
-    return redirect(polar_data.authorize_url(state))
+    return redirect(polar_data.authorize_url(state, oauth_callback_url("polar")))
 
 
 @app.get("/api/integrations/polar/callback")
@@ -209,7 +239,7 @@ def polar_callback():
 
     user_id = state_payload["user_id"]
     try:
-        token_payload = polar_data.exchange_code(code)
+        token_payload = polar_data.exchange_code(code, oauth_callback_url("polar"))
         registration = polar_data.register_user(token_payload)
         athlete = polar_data.get_user(token_payload)
     except Exception as exc:
@@ -412,4 +442,4 @@ def feedback():
 
 if __name__ == "__main__":
     beta_store.ensure_data_dirs()
-    app.run(host="0.0.0.0", port=5002, debug=False)
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "5002")), debug=False)

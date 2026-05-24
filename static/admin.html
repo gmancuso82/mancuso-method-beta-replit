@@ -229,7 +229,7 @@
             `Open profile: ${userLink(item.user_id || "")}`,
             `Goals: ${(item.fitness_goals || []).join(", ") || "none"}`,
             `Event: ${item.upcoming_event || "none"}`,
-            `Schedule: ${item.weekly_training_plan || "not entered"}`,
+            `Training days: ${(item.training_days || []).join(", ") || "not entered"}`,
             `Sources:\n${sources}`,
             "",
             item.coach_memory_summary || "No memory summary yet.",

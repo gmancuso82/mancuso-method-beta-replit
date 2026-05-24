@@ -63,7 +63,6 @@ def _schedule_context(profile: dict[str, Any], today: str) -> str:
             f"Today weekday: {day.strftime('%A')}",
             f"Tomorrow: {tomorrow.strftime('%A, %B %-d, %Y')}",
             f"Training days: {_format_list(profile.get('training_days'))}",
-            f"Weekly training plan: {profile.get('weekly_training_plan') or 'Not provided'}",
         ]
     )
 
@@ -140,7 +139,6 @@ ATHLETE PROFILE:
 - Primary fitness goals: {_format_list(profile.get('fitness_goals'))}
 - Upcoming event: {profile.get('upcoming_event') or 'None reported'}
 - Training days: {_format_list(profile.get('training_days'))}
-- Weekly training plan: {profile.get('weekly_training_plan') or 'Not provided'}
 - Wearables/data sources: {_format_list(profile.get('data_sources'))}
 - Injuries/limitations: {profile.get('injury_limitations') or 'None reported'}
 - Nutrition restrictions: {profile.get('nutrition_restrictions') or 'None reported'}
@@ -176,9 +174,8 @@ DATA SOURCE RULES:
 - Do not say a workout is completed today unless Strava activity date equals TODAY or the user manually says it was completed today.
 - Manual context is not wearable data. Treat it as user-reported context.
 - Do not mention sex, weight, or age unless directly relevant to coaching. They are background physiological context, not a headline.
-- Use the weekly training plan when deciding whether tomorrow should be recovery, training, PT, or race-specific work.
-- If the athlete has already completed today's planned session, explain how the rest of today supports the next scheduled session.
-- Do not contradict the schedule. If tomorrow is a planned workout day but recovery signals are questionable, say "modify tomorrow's planned session" rather than calling it a full rest day.
+- Use the selected training days and today's planned-training field as lightweight schedule context.
+- If the athlete has already completed today's planned session, explain how the rest of today supports recovery and the next likely training day.
 
 WEARABLE RECOVERY DATA AVAILABLE: {"Yes" if has_wearable_recovery else "No"}
 

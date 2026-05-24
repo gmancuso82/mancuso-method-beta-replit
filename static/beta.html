@@ -522,11 +522,6 @@
           </div>
 
           <div class="field">
-            <label for="weekly_training_plan">Weekly training plan</label>
-            <textarea id="weekly_training_plan" placeholder="Example: Mon strength, Tue run, Wed PT/spin, Thu rest, Fri HIIT + strength, Sat Hyrox-specific sled/wall balls/row, Sun recovery ride"></textarea>
-          </div>
-
-          <div class="field">
             <label>Fitness devices/apps</label>
             <div class="connect-list" id="dataSources">
               <div class="connect-item">
@@ -739,7 +734,7 @@
 
     const ids = [
       "name", "upcoming_event", "injury_limitations", "nutrition_restrictions",
-      "coaching_style", "age", "sex", "height", "weight", "weekly_training_plan",
+      "coaching_style", "age", "sex", "height", "weight",
       "sleep_hours", "sleep_quality", "hrv_ms", "resting_hr", "readiness_score",
       "energy", "soreness", "stress", "data_missed", "planned_training",
       "nutrition_calories", "nutrition_protein", "nutrition_carbs", "nutrition_fat",
@@ -806,7 +801,6 @@
         fitness_goals: checkedValues("fitnessGoals"),
         upcoming_event: val("upcoming_event"),
         training_days: checkedValues("trainingDays"),
-        weekly_training_plan: val("weekly_training_plan"),
         data_sources: checkedValues("dataSources"),
         injury_limitations: val("injury_limitations"),
         nutrition_restrictions: val("nutrition_restrictions"),
