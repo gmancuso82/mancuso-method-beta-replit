@@ -7,8 +7,8 @@ This is intentionally separate from Gina's personal `health-llm` Python coach. I
 ## What It Does
 
 - Creates a lightweight athlete profile only for data the connected apps cannot infer
-- Starts from connectable fitness sources: Strava first, Polar next, then Oura/WHOOP/Apple Health
-- Uses device/app data as the source of truth when available, and clearly separates synced data from manual context
+- Starts from Apple Health / Apple Watch because that is where beta users have the body data the coach needs
+- Uses Apple Health data as the source of truth when available, and clearly separates synced data from manual context
 - Generates a daily morning briefing as the main experience
 - Supports follow-up coach chat in a mostly conversational interface
 - Preserves a durable coach memory summary on each athlete profile
@@ -24,30 +24,39 @@ Gina's personal Python coach is the reference implementation for coaching behavi
 
 See [PRODUCT_BASELINE.md](PRODUCT_BASELINE.md) for the product principles that should guide all beta decisions.
 
-## Integration Roadmap
+## Beta Integration Roadmap
 
-1. **Strava first** — first beta users can connect Strava so the coach can read recent workouts, sport type, distance, duration, pace, heart rate when available, sex, and weight when available.
-2. **Polar next** — early testers with Polar can provide stronger heart-rate, effort, and intensity context than Strava alone.
-3. **Oura next** — Oura OAuth can add readiness, sleep, HRV, temperature, and recovery context.
-4. **WHOOP after Oura** — WHOOP OAuth can add recovery, strain, sleep, workout, profile, and body measurement data.
-5. **Apple Health / Apple Watch parallel plan** — Apple HealthKit is the long-term path for Apple Watch profile, workout, sleep, and heart data, but it is more complex than web OAuth integrations.
-6. **Garmin later / pro-athlete beta exception** — Garmin is difficult for hosted beta because of MFA and IP limits. For a professional athlete in beta, daily code entry is acceptable if the value is high enough.
+1. **Apple Health / Apple Watch first** — the beta market user needs sleep, HRV, weight, daily move, exercise time, cardio fitness, and workouts. This requires a native iOS app using HealthKit.
+2. **Replit as the coach backend** — Replit hosts the profile, Apple Health snapshot endpoint, daily briefing generation, chat, memory, feedback, and admin review.
+3. **TestFlight beta** — first users install the iPhone app, grant HealthKit permission, and use the chat-first coach flow.
+4. **Oura / WHOOP / Garmin later** — add these only when they strengthen the coach's body-data layer for the right users.
+5. **Strava / Polar as optional activity context** — keep legacy code available, but do not make it a primary beta path because activity-only data is not the product.
 
 ## Beta V1 Check-in
 
-Until recovery integrations are connected, the beta asks for:
+Until the iPhone app is sending Apple Health data, the beta asks only for:
 
 - Energy 1-10
 - Soreness 1-10
 - Life load 1-10
 - Prior-day calories
 - Prior-day protein, carbs, and fat
-- Planned training
-- What the synced data missed
 
-The coach must not infer sleep, readiness, HRV, or stress from Strava.
+The coach must use Apple Health for age, sex, daily move, daily exercise time, cardio fitness, sleep, weight, HRV, and exercise activities once the iOS app is connected.
+
+## Apple Health Snapshot API
+
+The iPhone app sends daily HealthKit data to:
+
+```text
+POST /api/apple-health/snapshot
+```
+
+See [ios/API_CONTRACT.md](ios/API_CONTRACT.md) for the payload. If `IOS_APP_API_KEY` is set on Replit, the iPhone app must send it in the `X-MM-BETA-KEY` header.
 
 ## Strava Setup
+
+Strava is legacy/optional and is not part of the primary Apple Health beta path.
 
 Set these environment variables locally or as Replit secrets:
 
@@ -64,6 +73,8 @@ For Replit, `APP_BASE_URL` should be the Replit app URL and the Strava app callb
 ```
 
 ## Polar Setup
+
+Polar is legacy/optional and is not part of the primary Apple Health beta path.
 
 Create a Polar AccessLink application, then set these environment variables locally or as Replit secrets:
 
@@ -107,7 +118,7 @@ Admin review page:
 http://127.0.0.1:5002/admin
 ```
 
-For hosted testing, send the Replit equivalent of the fresh tester link to each new tester. The admin page shows profiles, connected sources, check-ins, conversations, and feedback.
+For hosted testing, send the Replit equivalent of the fresh tester link to each new tester until the iPhone app is ready. The admin page shows profiles, Apple Health snapshots, check-ins, conversations, and feedback.
 
 If `ANTHROPIC_API_KEY` is not set, the app runs in demo mode.
 
@@ -115,11 +126,11 @@ For local live coaching, create a private `.env` file from `.env.example` and ad
 
 ## Replit
 
-Import this folder as a separate Replit project. Add `ANTHROPIC_API_KEY` as a Replit secret. Add Strava secrets when testing Strava connection:
+Import this folder as a separate Replit project. Add `ANTHROPIC_API_KEY` as a Replit secret. Add `IOS_APP_API_KEY` before giving the iPhone app to testers.
 
 ```bash
-STRAVA_CLIENT_ID=your_client_id
-STRAVA_CLIENT_SECRET=your_client_secret
+ANTHROPIC_API_KEY=your_anthropic_key
+IOS_APP_API_KEY=shared_secret_for_ios_app
 APP_BASE_URL=your_replit_app_url
 ```
 
@@ -129,4 +140,4 @@ Suggested run command:
 python app.py
 ```
 
-Later beta integrations can add `strava_data.py` without touching Gina's private Garmin/Oura app.
+Later beta integrations can use the existing Strava/Polar files without touching Gina's private Garmin/Oura app.
