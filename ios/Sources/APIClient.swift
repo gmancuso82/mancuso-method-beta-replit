@@ -28,7 +28,8 @@ final class APIClient {
     }
 
     private func postForResponse<T: Encodable, R: Decodable>(_ path: String, body: T) async throws -> R {
-        var request = URLRequest(url: AppConfig.baseURL.appending(path: path))
+        let cleanPath = path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        var request = URLRequest(url: AppConfig.baseURL.appendingPathComponent(cleanPath))
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(AppConfig.iosAppAPIKey, forHTTPHeaderField: "X-MM-BETA-KEY")
