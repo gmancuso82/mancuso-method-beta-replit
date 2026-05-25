@@ -82,6 +82,74 @@ def format_nutrition(checkin: dict[str, Any]) -> str:
     return ", ".join(macros) if macros else "not logged"
 
 
+def _value_or_na(value: Any, suffix: str = "") -> str:
+    if value in [None, ""]:
+        return "N/A"
+    return f"{value}{suffix}"
+
+
+def format_apple_health(snapshot: dict[str, Any] | None) -> str:
+    if not snapshot:
+        return "No Apple Health snapshot has been received yet."
+
+    workouts = snapshot.get("workouts") or snapshot.get("exercise_activities") or []
+    workout_lines = []
+    for workout in workouts[:8]:
+        workout_lines.append(
+            "; ".join(
+                [
+                    f"- {workout.get('activity_type') or workout.get('type') or 'Workout'}",
+                    f"start: {workout.get('start') or workout.get('start_time') or 'N/A'}",
+                    f"duration: {_value_or_na(workout.get('duration_minutes') or workout.get('duration_mins'), ' min')}",
+                    f"calories: {_value_or_na(workout.get('active_energy_kcal') or workout.get('calories'), ' kcal')}",
+                    f"avg HR: {_value_or_na(workout.get('average_hr') or workout.get('averageHR'), ' bpm')}",
+                    f"distance: {_value_or_na(workout.get('distance_m') or workout.get('distance'), '')}",
+                ]
+            )
+        )
+
+    return "\n".join(
+        [
+            f"Snapshot date: {snapshot.get('date') or 'N/A'}",
+            f"Age: {_value_or_na(snapshot.get('age'))}",
+            f"Sex: {_value_or_na(snapshot.get('sex'))}",
+            f"Weight: {_value_or_na(snapshot.get('weight'))}",
+            f"Daily move / active energy: {_value_or_na(snapshot.get('daily_move_kcal') or snapshot.get('active_energy_kcal'), ' kcal')}",
+            f"Exercise time: {_value_or_na(snapshot.get('exercise_minutes'), ' min')}",
+            f"Cardio fitness / VO2 max: {_value_or_na(snapshot.get('cardio_fitness_vo2max'))}",
+            f"Sleep score: {_value_or_na(snapshot.get('sleep_score'))}",
+            f"Sleep duration: {_value_or_na(snapshot.get('sleep_duration_minutes'), ' min')}",
+            f"HRV: {_value_or_na(snapshot.get('hrv_ms'), ' ms')}",
+            f"Resting HR: {_value_or_na(snapshot.get('resting_hr'), ' bpm')}",
+            f"Workouts:\n{chr(10).join(workout_lines) if workout_lines else 'No workouts reported in this snapshot.'}",
+        ]
+    )
+
+
+def format_recent_apple_health(snapshots: list[dict[str, Any]]) -> str:
+    if not snapshots:
+        return "No Apple Health history yet."
+    lines = []
+    for item in snapshots[:7]:
+        workouts = item.get("workouts") or item.get("exercise_activities") or []
+        workout_summary = ", ".join(
+            (workout.get("activity_type") or workout.get("type") or "Workout")
+            for workout in workouts[:4]
+        )
+        lines.append(
+            "\n".join(
+                [
+                    f"Date: {item.get('date', 'unknown')}",
+                    f"Sleep score: {_value_or_na(item.get('sleep_score'))}; sleep duration: {_value_or_na(item.get('sleep_duration_minutes'), ' min')}",
+                    f"HRV: {_value_or_na(item.get('hrv_ms'), ' ms')}; resting HR: {_value_or_na(item.get('resting_hr'), ' bpm')}",
+                    f"Move: {_value_or_na(item.get('daily_move_kcal') or item.get('active_energy_kcal'), ' kcal')}; exercise: {_value_or_na(item.get('exercise_minutes'), ' min')}",
+                    f"Activities: {workout_summary or 'none'}",
+                ]
+            )
+        )
+    return "\n\n".join(lines)
+
+
 def format_connected_activities(activities: list[dict[str, Any]], today: str) -> str:
     if not activities:
         return "No synced activities available."
@@ -97,7 +165,7 @@ def format_connected_activities(activities: list[dict[str, Any]], today: str) ->
         else:
             label = "prior"
         parts = [
-            f"- Source: Strava",
+            f"- Source: {activity.get('source') or 'Connected activity app'}",
             f"date: {activity_date} ({label})",
             f"name: {activity.get('activityName') or 'Activity'}",
             f"sport: {activity.get('sport_type') or 'N/A'}",
@@ -115,11 +183,11 @@ def build_system_prompt(profile: dict[str, Any], recent_checkins: list[dict[str,
     name = profile.get("name") or "this athlete"
     memory = profile.get("coach_memory_summary") or "No durable memory summary yet."
     return f"""
-You are the Mancuso Method coach: a calm, direct, emotionally aware AI performance coach for women.
+You are the Mancuso Method coach: a calm, direct, emotionally aware AI performance coach.
 
-Your job is not to be a wearable dashboard. Your job is to interpret patterns across training,
-recovery, nutrition, stress, injury constraints, goals, and prior conversations, then turn that
-into a clear next action.
+Your job is not to be a wearable dashboard. Your job is to interpret the athlete's Apple Health,
+training, recovery, nutrition, stress, injury constraints, goals, and prior conversations, then turn
+that data into a clear personalized plan for today.
 
 COACHING PRINCIPLES:
 - Reason from patterns, not isolated metrics.
@@ -129,20 +197,21 @@ COACHING PRINCIPLES:
 - If the user expresses fear around food/body image, stay compassionate and performance-focused.
 - Do not diagnose medical issues. Suggest professional support when appropriate.
 - Keep tone direct, warm, and athlete-to-coach, not generic wellness app.
+- The user's product vision is a conversational coach. Never sound like a dashboard explaining metrics.
+- Use age and sex as physiological context when useful, but do not call them out unless relevant.
 
 ATHLETE PROFILE:
 - Name: {name}
 - Age: {profile.get('age') or 'Not connected yet'}
 - Sex: {profile.get('sex') or 'Not connected yet'}
-- Height: {profile.get('height') or 'Not connected yet'}
 - Weight: {profile.get('weight') or 'Not connected yet'}
-- Primary fitness goals: {_format_list(profile.get('fitness_goals'))}
-- Upcoming event: {profile.get('upcoming_event') or 'None reported'}
-- Training days: {_format_list(profile.get('training_days'))}
+- Training goals: {_format_list(profile.get('training_goals') or profile.get('fitness_goals'))}
+- Upcoming competition: {profile.get('upcoming_competition') or profile.get('upcoming_event') or 'None reported'}
+- Competition date: {profile.get('competition_date') or 'None reported'}
+- Experience level: {profile.get('experience_level') or 'Not entered'}
 - Wearables/data sources: {_format_list(profile.get('data_sources'))}
 - Injuries/limitations: {profile.get('injury_limitations') or 'None reported'}
 - Nutrition restrictions: {profile.get('nutrition_restrictions') or 'None reported'}
-- Coaching style preference: {profile.get('coaching_style') or 'direct but supportive'}
 
 DURABLE COACH MEMORY:
 {memory}
@@ -154,65 +223,86 @@ RECENT CHECK-INS:
 
 def build_briefing_prompt(profile: dict[str, Any], checkin: dict[str, Any], recent_checkins: list[dict[str, Any]]) -> str:
     connected_activities = checkin.get("connected_activities") or []
-    connected_athlete = checkin.get("connected_athlete_profile") or {}
+    apple_snapshot = checkin.get("apple_health") or {}
+    recent_apple = checkin.get("recent_apple_health") or []
     today = checkin.get('date') or date.today().isoformat()
-    has_wearable_recovery = any(
-        checkin.get(key) not in [None, ""]
-        for key in ["sleep_hours", "sleep_quality", "hrv_ms", "resting_hr", "readiness_score"]
-    )
+    event = profile.get("upcoming_competition") or profile.get("upcoming_event") or ""
+    competition_date = profile.get("competition_date") or ""
+    event_line = "No event countdown available."
+    if event and competition_date:
+        try:
+            days_out = (_parse_date(competition_date) - _parse_date(today)).days
+            event_line = f"{days_out} days to {event}" if days_out >= 0 else f"{event} has passed"
+        except Exception:
+            event_line = event
+    elif event:
+        event_line = event
+
     return f"""
-Generate today's Mancuso Method daily briefing for {profile.get('name') or 'this athlete'}.
+Generate today's Mancuso Method morning briefing for {profile.get('name') or 'this athlete'}.
 
 TODAY: {_date_label(today)} ({today})
+EVENT CONTEXT: {event_line}
 
 DATA SOURCE RULES:
-- Strava provides training/activity context only. It does not provide sleep, HRV, readiness, or wearable stress.
-- If wearable recovery data is unavailable, do not pretend it exists and do not make the briefing about missing metrics.
-- For Strava-only users, base guidance on synced activities, sport type, training load, planned training, soreness, energy, life load, prior-day nutrition, and injuries.
-- Once Apple Health, Apple Watch, Oura, WHOOP, or Garmin is connected, sleep/readiness/HRV can become core coaching signals.
-- Do not say "yesterday" unless a source date is actually yesterday.
-- Do not say a workout is completed today unless Strava activity date equals TODAY or the user manually says it was completed today.
-- Manual context is not wearable data. Treat it as user-reported context.
+- Apple Health / Apple Watch is the primary beta data source.
+- Do not invent unavailable data. If Apple Health has not sent a field yet, use the manual check-in and say less, not more.
+- The coach should interpret what the metrics mean for this athlete today. Do not explain the app or list raw data like a dashboard.
+- Do not say "yesterday" unless the source date is actually yesterday.
+- Do not say a workout is completed today unless Apple Health activity date equals TODAY, connected activity date equals TODAY, or the user manually says it was completed today.
+- Use prior conversation memory, injury limitations, goals, nutrition, and recent trend context as the heart of the coaching.
 - Do not mention sex, weight, or age unless directly relevant to coaching. They are background physiological context, not a headline.
-- Use the selected training days and today's planned-training field as lightweight schedule context.
-- If the athlete has already completed today's planned session, explain how the rest of today supports recovery and the next likely training day.
+- Today's recommendation should be specific, with duration and intensity when training is appropriate.
 
-WEARABLE RECOVERY DATA AVAILABLE: {"Yes" if has_wearable_recovery else "No"}
+ATHLETE PROFILE:
+- Name: {profile.get('name') or 'Unknown'}
+- Phone: {profile.get('phone') or 'Not entered'}
+- Email: {profile.get('email') or 'Not entered'}
+- Training goals: {_format_list(profile.get('training_goals') or profile.get('fitness_goals'))}
+- Upcoming competition: {event or 'None reported'}
+- Competition date: {competition_date or 'None reported'}
+- Experience level: {profile.get('experience_level') or 'Not entered'}
+- Injuries/limitations: {profile.get('injury_limitations') or 'None reported'}
+- Nutrition restrictions: {profile.get('nutrition_restrictions') or 'None reported'}
 
-CONNECTED ATHLETE PROFILE:
-- Source: Strava
-- Name: {connected_athlete.get('name') or profile.get('name') or 'Not connected'}
-- Sex: {connected_athlete.get('sex') or profile.get('sex') or 'Not connected'}
-- Weight: {connected_athlete.get('weight') or profile.get('weight') or 'Not connected'}
-- Age: {profile.get('age') or 'Not connected yet'}
+APPLE HEALTH / APPLE WATCH SNAPSHOT:
+{format_apple_health(apple_snapshot)}
 
-SCHEDULE CONTEXT:
-{_schedule_context(profile, today)}
+RECENT APPLE HEALTH HISTORY:
+{format_recent_apple_health(recent_apple)}
 
 MANUAL CHECK-IN:
-- Sleep hours: {checkin.get('sleep_hours', 'N/A')}
-- Sleep quality: {checkin.get('sleep_quality', 'N/A')}/10
-- HRV: {checkin.get('hrv_ms', 'N/A')} ms
-- Resting HR: {checkin.get('resting_hr', 'N/A')}
-- Readiness/recovery score: {checkin.get('readiness_score', 'N/A')}
 - Energy: {checkin.get('energy', 'N/A')}/10
 - Soreness: {checkin.get('soreness', 'N/A')}/10
 - Life load: {checkin.get('stress', 'N/A')}/10
-- What the data missed: {checkin.get('data_missed') or 'None reported'}
-- Planned training today: {checkin.get('planned_training') or 'Not set'}
 - Prior-day nutrition: {format_nutrition(checkin)}
 - Athlete notes: {checkin.get('notes') or 'None'}
 
-SYNCED ACTIVITY DATA:
+LEGACY CONNECTED ACTIVITY DATA IF PRESENT:
 {format_connected_activities(connected_activities, today)}
 
-Write a concise daily briefing with these sections:
-1. Current Status
-2. What The Data Says
-3. Today's Training Recommendation
-4. Fueling Priority
-5. One Thing To Watch
-6. Coach's Note
+Write the briefing in this exact structure:
+
+# 🌅 Morning Briefing — {_parse_date(today).strftime('%A, %B %-d')}
+### {profile.get('name') or 'Athlete'} | {event_line}
+
+## 1. Recovery Status
+1-2 direct sentences.
+
+## 2. What the Data Says
+2-3 bullets or short paragraphs with the most important signals.
+
+## 3. Today's Training Recommendation
+Specific recommendation with duration and intensity. If today's workout is already logged, say that and shift to recovery execution.
+
+## 4. Nutrition
+Actionable advice based on prior-day calories, protein, carbs, fat, restrictions, and today's training.
+
+## 5. One Thing to Watch Today
+One specific risk, limit, or signal to monitor.
+
+## 6. Coach's Note
+1-2 honest, motivating sentences.
 
 Make it specific enough that the user can act today. Do not mention app features.
 """.strip()
@@ -228,7 +318,10 @@ def call_claude(system: str, messages: list[dict[str, str]], max_tokens: int = 9
     except ImportError:
         return demo_reply(messages[-1]["content"] if messages else "")
 
-    client = anthropic.Anthropic(api_key=api_key)
+    client = anthropic.Anthropic(
+        api_key=api_key,
+        timeout=float(os.getenv("ANTHROPIC_TIMEOUT", "30")),
+    )
     response = client.messages.create(
         model=MODEL,
         max_tokens=max_tokens,
@@ -316,14 +409,17 @@ Return only the updated memory summary.
 def demo_reply(prompt: str) -> str:
     return (
         "Demo mode: add `ANTHROPIC_API_KEY` to the environment to generate live coaching.\n\n"
-        "**Current Status**\n"
-        "Use today's activity data, soreness, energy, life load, and planned training together. "
-        "For Strava-only users, sleep and readiness stay out of the analysis until a wearable is connected.\n\n"
-        "**Today's Training Recommendation**\n"
-        "Choose the session that supports consistency tomorrow, not the one that only proves effort today.\n\n"
-        "**Fueling Priority**\n"
-        "Anchor each meal with protein and add carbs around training. Do not let a busy day turn into an "
-        "accidental deficit.\n\n"
-        "**Coach's Note**\n"
-        "The beta coach is wired correctly; live model output will replace this once the API key is set."
+        "# 🌅 Morning Briefing\n\n"
+        "## 1. Recovery Status\n"
+        "Use Apple Health recovery data, subjective energy, soreness, and life load together. Do not reduce the athlete to a score.\n\n"
+        "## 2. What the Data Says\n"
+        "The coach will explain what sleep, HRV, movement, workouts, nutrition, and recent conversation history mean for this person today.\n\n"
+        "## 3. Today's Training Recommendation\n"
+        "Choose the session that supports adaptation, consistency, and injury constraints.\n\n"
+        "## 4. Nutrition\n"
+        "Anchor the day with enough calories, protein, carbs, and fat to support training and recovery.\n\n"
+        "## 5. One Thing to Watch Today\n"
+        "Watch the most important signal for this athlete, not every metric at once.\n\n"
+        "## 6. Coach's Note\n"
+        "The beta coach is wired for the Apple Health direction; live model output will replace this once the API key is set."
     )

@@ -141,7 +141,7 @@
     <div class="top-row">
       <div>
         <h1>Mancuso Method Beta Admin</h1>
-        <div class="sub">Profiles, memory, check-ins, conversations, and feedback from local beta testing.</div>
+        <div class="sub">Profiles, Apple Health snapshots, memory, check-ins, conversations, and feedback from beta testing.</div>
       </div>
       <button id="refresh">Refresh</button>
     </div>
@@ -161,6 +161,10 @@
     <section>
       <h2>Connected Sources</h2>
       <div class="grid" id="integrations"></div>
+    </section>
+    <section>
+      <h2>Apple Health Snapshots</h2>
+      <div class="grid" id="appleHealth"></div>
     </section>
     <section>
       <h2>Recent Check-ins</h2>
@@ -227,9 +231,10 @@
             : "No connected sources yet.";
           return [
             `Open profile: ${userLink(item.user_id || "")}`,
-            `Goals: ${(item.fitness_goals || []).join(", ") || "none"}`,
-            `Event: ${item.upcoming_event || "none"}`,
-            `Training days: ${(item.training_days || []).join(", ") || "not entered"}`,
+            `Goals: ${(item.training_goals || item.fitness_goals || []).join(", ") || "none"}`,
+            `Competition: ${item.upcoming_competition || item.upcoming_event || "none"}`,
+            `Competition date: ${item.competition_date || "not entered"}`,
+            `Experience: ${item.experience_level || "not entered"}`,
             `Sources:\n${sources}`,
             "",
             item.coach_memory_summary || "No memory summary yet.",
@@ -242,6 +247,13 @@
         item => `${item.user_id || "unknown"} | ${item.provider || "unknown source"}`,
         item => `connected: ${item.connected ? "yes" : "no"} | synced: ${item.last_sync_at || "not synced"} | activities: ${item.activity_count || 0}`,
         item => item.latest_activity ? JSON.stringify(item.latest_activity, null, 2) : "No synced activities yet."
+      );
+      render(
+        "appleHealth",
+        data.apple_health || [],
+        item => `${item.user_id || "unknown"} | ${item.date || "unknown date"}`,
+        item => `updated: ${item.updated_at || "unknown"} | source: ${item.source || "apple_health"}`,
+        item => JSON.stringify(item, null, 2)
       );
       render(
         "checkins",

@@ -6,19 +6,15 @@
   <title>Mancuso Method Beta</title>
   <style>
     :root {
-      --bg: #12130f;
-      --panel: #1b1d18;
-      --panel-2: #22251f;
-      --ink: #f2efe6;
+      --bg: #11130f;
+      --panel: #1a1d18;
+      --panel-2: #22261f;
+      --ink: #f3efe7;
       --soft: #cfc7b8;
-      --muted: #898679;
-      --line: #31342b;
+      --muted: #8d887c;
+      --line: #31362d;
       --accent: #d66d4c;
-      --accent-2: #87a878;
-      --blue: #7aa0b8;
-      --warn: #c59a4a;
-      --bad: #bf624f;
-      --ok: #79a06f;
+      --ok: #7fa06d;
       --radius: 8px;
     }
 
@@ -48,7 +44,7 @@
       min-height: 64px;
       padding: 12px 18px;
       border-bottom: 1px solid var(--line);
-      background: rgba(18, 19, 15, 0.96);
+      background: rgba(17, 19, 15, .96);
       position: sticky;
       top: 0;
       z-index: 3;
@@ -68,17 +64,17 @@
 
     .brand { min-width: 0; }
     .brand-title {
-      font-weight: 700;
       font-size: 16px;
+      font-weight: 750;
       line-height: 1.2;
     }
     .brand-sub {
+      margin-top: 2px;
       color: var(--muted);
       font-size: 12px;
-      margin-top: 2px;
-      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .status {
@@ -102,27 +98,26 @@
       color: var(--soft);
       padding: 8px 10px;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 750;
       text-decoration: none;
     }
 
     main {
       display: grid;
-      grid-template-columns: minmax(340px, 420px) minmax(0, 1fr);
+      grid-template-columns: minmax(330px, 400px) minmax(0, 1fr);
       min-height: 0;
     }
 
-    .left {
+    aside {
       border-right: 1px solid var(--line);
-      background: #171914;
-      overflow: auto;
+      background: #171a15;
       min-height: calc(100vh - 64px);
+      overflow: auto;
     }
 
-    .right {
-      overflow: auto;
+    .coach {
       min-height: calc(100vh - 64px);
-      background: var(--bg);
+      overflow: auto;
     }
 
     .tabs {
@@ -135,11 +130,12 @@
 
     .tab {
       border: 1px solid var(--line);
-      color: var(--soft);
-      background: var(--panel);
       border-radius: var(--radius);
+      background: var(--panel);
+      color: var(--soft);
       padding: 9px 8px;
       font-size: 13px;
+      font-weight: 700;
     }
     .tab.active {
       background: var(--accent);
@@ -151,20 +147,20 @@
     .pane.active { display: block; }
 
     .section-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--ink);
       margin: 4px 0 14px;
+      font-size: 14px;
+      font-weight: 750;
     }
 
     .field { margin-bottom: 12px; }
     label {
       display: block;
+      margin-bottom: 6px;
       color: var(--soft);
       font-size: 12px;
-      font-weight: 650;
-      margin-bottom: 6px;
+      font-weight: 700;
     }
+
     input, textarea, select {
       width: 100%;
       border: 1px solid var(--line);
@@ -174,11 +170,9 @@
       padding: 10px 11px;
       outline: none;
     }
-    input:focus, textarea:focus, select:focus {
-      border-color: var(--accent);
-    }
+    input:focus, textarea:focus, select:focus { border-color: var(--accent); }
     textarea {
-      min-height: 82px;
+      min-height: 86px;
       resize: vertical;
       line-height: 1.45;
     }
@@ -189,116 +183,13 @@
       gap: 10px;
     }
 
-    .choice-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .choice {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: var(--panel);
-      padding: 9px 10px;
-      color: var(--soft);
-      font-size: 13px;
-      font-weight: 650;
-    }
-    .choice input {
-      width: auto;
-      accent-color: var(--accent);
-    }
-
-    .connect-list {
-      display: grid;
-      gap: 8px;
-    }
-    .connect-item {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: center;
-      gap: 10px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: var(--panel);
-      padding: 10px;
-    }
-    .connect-name {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--ink);
-      font-size: 13px;
-      font-weight: 750;
-    }
-    .connect-name input {
-      width: auto;
-      accent-color: var(--accent);
-    }
-    .connect-meta {
-      margin-top: 3px;
-      color: var(--muted);
-      font-size: 11px;
-    }
-    .connect-button {
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: var(--panel-2);
-      color: var(--ink);
-      padding: 7px 9px;
-      font-size: 12px;
-      font-weight: 750;
-    }
-    .connect-actions {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-    }
-    .disconnect-button {
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: var(--radius);
-      background: transparent;
-      color: var(--muted);
-      padding: 7px 9px;
-      font-size: 12px;
-      font-weight: 750;
-      display: none;
-    }
-
-    .readonly-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    .readonly-box {
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: var(--panel);
-      padding: 10px;
-      min-height: 58px;
-    }
-    .readonly-label {
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 750;
-      text-transform: uppercase;
-    }
-    .readonly-value {
-      margin-top: 6px;
-      color: var(--soft);
-      font-size: 14px;
-    }
-
     .primary, .secondary {
+      width: 100%;
       border: 1px solid transparent;
       border-radius: var(--radius);
       padding: 10px 12px;
       color: white;
-      font-weight: 700;
-      width: 100%;
+      font-weight: 750;
     }
     .primary { background: var(--accent); }
     .secondary {
@@ -306,47 +197,36 @@
       border-color: var(--line);
       color: var(--ink);
     }
-    .primary:disabled, .secondary:disabled {
-      opacity: .55;
-      cursor: default;
+
+    .notice {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
     }
 
-    .coach-shell {
-      width: min(920px, 100%);
-      margin: 0 auto;
-      padding: 22px;
-    }
-
-    .daily-strip {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-bottom: 18px;
-    }
-    .metric {
+    .apple-status {
       border: 1px solid var(--line);
       border-radius: var(--radius);
       background: var(--panel);
       padding: 12px;
-      min-height: 82px;
+      margin-bottom: 14px;
     }
-    .metric-label {
+    .apple-status strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 13px;
+    }
+    .apple-status span {
       color: var(--muted);
-      font-size: 11px;
-      text-transform: uppercase;
-      font-weight: 750;
-    }
-    .metric-value {
-      margin-top: 8px;
-      font-size: 24px;
-      font-weight: 750;
-      color: var(--ink);
-      font-variant-numeric: tabular-nums;
-    }
-    .metric-note {
-      margin-top: 3px;
-      color: var(--soft);
       font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .coach-shell {
+      width: min(900px, 100%);
+      margin: 0 auto;
+      padding: 22px;
     }
 
     .coach-card {
@@ -357,20 +237,35 @@
       margin-bottom: 14px;
     }
     .coach-card h2 {
-      margin: 0 0 10px;
+      margin: 0 0 12px;
       font-size: 18px;
     }
+
     .briefing {
       color: var(--ink);
       line-height: 1.58;
       font-size: 15px;
     }
-    .briefing h3 {
-      font-size: 15px;
+    .briefing h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+    .briefing h2 {
       margin: 18px 0 8px;
-      color: var(--ink);
+      font-size: 16px;
+    }
+    .briefing h3 {
+      margin: 0 0 16px;
+      color: var(--soft);
+      font-size: 14px;
     }
     .briefing strong { color: #fff; }
+
+    .empty {
+      margin: 0;
+      color: var(--soft);
+      line-height: 1.55;
+    }
 
     .chat-log {
       display: flex;
@@ -402,7 +297,6 @@
       grid-template-columns: 1fr 96px;
       gap: 8px;
     }
-    .composer input { height: 42px; }
 
     .feedback-row {
       display: grid;
@@ -416,41 +310,24 @@
       background: var(--panel-2);
       color: var(--ink);
       padding: 10px 8px;
-      font-weight: 700;
-    }
-
-    .notice {
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.4;
-      margin-top: 10px;
-    }
-
-    .empty {
-      color: var(--soft);
-      line-height: 1.55;
-      margin: 0;
+      font-weight: 750;
     }
 
     @media (max-width: 900px) {
       main { grid-template-columns: 1fr; }
-      .left {
+      aside {
         border-right: none;
         border-bottom: 1px solid var(--line);
         min-height: auto;
       }
-      .right { min-height: auto; }
-      .daily-strip { grid-template-columns: repeat(2, 1fr); }
+      .coach { min-height: auto; }
       .msg { max-width: 92%; }
     }
 
     @media (max-width: 520px) {
       header { padding: 11px 12px; }
       .status { display: none; }
-      .tabs { grid-template-columns: 1fr 1fr; }
-      .pane { padding: 14px; }
-      .coach-shell { padding: 14px; }
-      .daily-strip { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .pane, .coach-shell { padding: 14px; }
       .grid-2, .feedback-row, .composer { grid-template-columns: 1fr; }
     }
   </style>
@@ -468,7 +345,7 @@
     </header>
 
     <main>
-      <aside class="left">
+      <aside>
         <div class="tabs">
           <button class="tab active" data-tab="profile">Profile</button>
           <button class="tab" data-tab="checkin">Check-in</button>
@@ -479,153 +356,61 @@
           <div class="section-title">Athlete Profile</div>
           <div class="field">
             <label for="name">Name</label>
-            <input id="name" autocomplete="name" placeholder="First name">
+            <input id="name" autocomplete="name" placeholder="First and last name">
           </div>
-
-          <div class="field">
-            <label>Auto-filled from connected devices</label>
-            <div class="readonly-grid">
-              <div class="readonly-box">
-                <div class="readonly-label">Age</div>
-                <div class="readonly-value" id="ageDisplay">Connect device</div>
-              </div>
-              <div class="readonly-box">
-                <div class="readonly-label">Sex</div>
-                <div class="readonly-value" id="sexDisplay">Connect device</div>
-              </div>
-              <div class="readonly-box">
-                <div class="readonly-label">Height</div>
-                <div class="readonly-value" id="heightDisplay">Connect device</div>
-              </div>
-              <div class="readonly-box">
-                <div class="readonly-label">Weight</div>
-                <div class="readonly-value" id="weightDisplay">Connect device</div>
-              </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="phone">Phone number</label>
+              <input id="phone" autocomplete="tel" inputmode="tel" placeholder="Optional">
+            </div>
+            <div class="field">
+              <label for="email">Email</label>
+              <input id="email" autocomplete="email" inputmode="email" placeholder="Optional">
             </div>
           </div>
-
           <div class="field">
-            <label>Primary fitness goal</label>
-            <div class="choice-grid" id="fitnessGoals">
-              <label class="choice"><input type="checkbox" value="weight loss"> Weight loss</label>
-              <label class="choice"><input type="checkbox" value="strength"> Strength</label>
-              <label class="choice"><input type="checkbox" value="endurance"> Endurance</label>
-              <label class="choice"><input type="checkbox" value="sports specific"> Sports specific</label>
-              <label class="choice"><input type="checkbox" value="increase running speed"> Increase running speed</label>
-              <label class="choice"><input type="checkbox" value="increase running distance"> Increase running distance</label>
-              <label class="choice"><input type="checkbox" value="road bike"> Road bike</label>
-              <label class="choice"><input type="checkbox" value="injury/surgery recovery"> Injury/surgery recovery</label>
+            <label for="training_goals">Training goals</label>
+            <textarea id="training_goals" placeholder="Strength, endurance, weight loss, sport, race goal, general fitness"></textarea>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="upcoming_competition">Upcoming competition</label>
+              <input id="upcoming_competition" placeholder="Optional">
+            </div>
+            <div class="field">
+              <label for="competition_date">Competition date</label>
+              <input id="competition_date" type="date">
             </div>
           </div>
-
           <div class="field">
-            <label for="upcoming_event">Do you have an upcoming event?</label>
-            <input id="upcoming_event" placeholder="Optional: event name and date">
+            <label for="experience_level">Experience level</label>
+            <select id="experience_level">
+              <option value="">Select one</option>
+              <option>Beginner</option>
+              <option>Intermediate</option>
+              <option>Advanced</option>
+            </select>
           </div>
-
           <div class="field">
-            <label>Typical training schedule</label>
-            <div class="choice-grid" id="trainingDays">
-              <label class="choice"><input type="checkbox" value="Monday"> Monday</label>
-              <label class="choice"><input type="checkbox" value="Tuesday"> Tuesday</label>
-              <label class="choice"><input type="checkbox" value="Wednesday"> Wednesday</label>
-              <label class="choice"><input type="checkbox" value="Thursday"> Thursday</label>
-              <label class="choice"><input type="checkbox" value="Friday"> Friday</label>
-              <label class="choice"><input type="checkbox" value="Saturday"> Saturday</label>
-              <label class="choice"><input type="checkbox" value="Sunday"> Sunday</label>
-            </div>
-          </div>
-
-          <div class="field">
-            <label>Fitness devices/apps</label>
-            <div class="connect-list" id="dataSources">
-              <div class="connect-item">
-                <div>
-                  <label class="connect-name"><input type="checkbox" value="Strava"> Strava</label>
-                  <div class="connect-meta">Workouts, sport type, distance, pace, HR when available</div>
-                </div>
-                <div class="connect-actions">
-                  <button class="connect-button" type="button" data-provider="Strava" id="stravaButton">Connect</button>
-                  <button class="disconnect-button" type="button" data-provider="strava" id="stravaDisconnect">Disconnect</button>
-                </div>
-              </div>
-              <div class="connect-item">
-                <div>
-                  <label class="connect-name"><input type="checkbox" value="Polar"> Polar</label>
-                  <div class="connect-meta">Heart rate, training sessions, intensity, and effort context</div>
-                </div>
-                <div class="connect-actions">
-                  <button class="connect-button" type="button" data-provider="Polar" id="polarButton">Connect</button>
-                  <button class="disconnect-button" type="button" data-provider="polar" id="polarDisconnect">Disconnect</button>
-                </div>
-              </div>
-              <div class="connect-item">
-                <div>
-                  <label class="connect-name"><input type="checkbox" value="Oura"> Oura</label>
-                  <div class="connect-meta">Sleep, readiness, HRV, age, height, weight, sex</div>
-                </div>
-                <button class="connect-button" type="button" data-provider="Oura">Connect</button>
-              </div>
-              <div class="connect-item">
-                <div>
-                  <label class="connect-name"><input type="checkbox" value="Apple Watch"> Apple Watch</label>
-                  <div class="connect-meta">Workouts and HR through Strava/Apple Health bridge</div>
-                </div>
-                <button class="connect-button" type="button" data-provider="Apple Watch">Connect</button>
-              </div>
-              <div class="connect-item">
-                <div>
-                  <label class="connect-name"><input type="checkbox" value="Apple Health"> Apple Health</label>
-                  <div class="connect-meta">Profile, workouts, sleep, HR through HealthKit path</div>
-                </div>
-                <button class="connect-button" type="button" data-provider="Apple Health">Connect</button>
-              </div>
-            </div>
-            <p class="notice" id="connectStatus">Connections will become the source of truth for profile and daily data.</p>
-          </div>
-
-          <div class="field">
-            <label for="injury_limitations">Injury limitations</label>
+            <label for="injury_limitations">Injury or limitations</label>
             <textarea id="injury_limitations" placeholder="Optional"></textarea>
           </div>
-
           <div class="field">
             <label for="nutrition_restrictions">Nutrition restrictions</label>
             <textarea id="nutrition_restrictions" placeholder="Optional"></textarea>
           </div>
 
-          <div class="field">
-            <label for="coaching_style">Coaching style</label>
-            <select id="coaching_style">
-              <option>Direct but supportive</option>
-              <option>Gentle and encouraging</option>
-              <option>Analytical and precise</option>
-              <option>Race-focused and blunt</option>
-            </select>
+          <div class="apple-status">
+            <strong>Apple Health</strong>
+            <span id="appleStatus">Waiting for iPhone sync.</span>
           </div>
 
-          <input id="age" type="hidden">
-          <input id="sex" type="hidden">
-          <input id="height" type="hidden">
-          <input id="weight" type="hidden">
-
           <button class="primary" id="saveProfile">Save Profile</button>
-          <p class="notice" id="profileSaveStatus">Profile setup captures only what connected data cannot reliably infer.</p>
+          <p class="notice" id="profileSaveStatus">Profile saved here first; Apple Health fills the body and training data next.</p>
         </section>
 
         <section class="pane" id="checkin">
           <div class="section-title">Daily Check-in</div>
-          <p class="notice">For Strava-only testers, the coach reads synced training activity and uses the quick subjective fields below. Sleep, HRV, readiness, and wearable stress become automatic once Apple Health, Oura, WHOOP, or Garmin is connected.</p>
-
-          <div class="field">
-            <label for="data_missed">What did the data miss?</label>
-            <textarea id="data_missed" placeholder="Leave blank if Strava captured it. Add soreness, modified workouts, missed sessions, symptoms, or context the data cannot know."></textarea>
-          </div>
-          <div class="field">
-            <label for="planned_training">Planned training today</label>
-            <textarea id="planned_training" placeholder="What the athlete is considering today"></textarea>
-          </div>
-
           <div class="grid-2">
             <div class="field">
               <label for="energy">Energy 1-10</label>
@@ -640,31 +425,6 @@
             <label for="stress">Life load 1-10</label>
             <input id="stress" type="number" min="1" max="10" step="1">
           </div>
-
-          <div class="section-title">Wearable Recovery</div>
-          <p class="notice">Optional for now. These should come from Apple Health, Oura, WHOOP, or Garmin, not Strava.</p>
-          <div class="grid-2">
-            <div class="field">
-              <label for="sleep_hours">Sleep hours</label>
-              <input id="sleep_hours" type="number" min="0" max="14" step="0.1">
-            </div>
-            <div class="field">
-              <label for="sleep_quality">Sleep quality 1-10</label>
-              <input id="sleep_quality" type="number" min="1" max="10" step="1">
-            </div>
-            <div class="field">
-              <label for="hrv_ms">HRV ms</label>
-              <input id="hrv_ms" type="number" min="0" step="1">
-            </div>
-            <div class="field">
-              <label for="resting_hr">Resting HR</label>
-              <input id="resting_hr" type="number" min="0" step="1">
-            </div>
-            <div class="field">
-              <label for="readiness_score">Readiness score</label>
-              <input id="readiness_score" type="number" min="0" max="100" step="1">
-            </div>
-          </div>
           <div class="field">
             <label>Prior-day nutrition</label>
             <div class="grid-2">
@@ -673,11 +433,11 @@
               <input id="nutrition_carbs" type="number" min="0" step="1" placeholder="Carbs g">
               <input id="nutrition_fat" type="number" min="0" step="1" placeholder="Fat g">
             </div>
-            <textarea id="nutrition_notes" placeholder="Optional: MyFitnessPal notes, meals, hunger, skipped meals, or fueling concerns"></textarea>
+            <textarea id="nutrition_notes" placeholder="Meals, hunger, skipped meals, MyFitnessPal notes, fueling concerns"></textarea>
           </div>
           <div class="field">
             <label for="notes">Anything else</label>
-            <textarea id="notes" placeholder="Mood, travel, work stress, symptoms, schedule"></textarea>
+            <textarea id="notes" placeholder="Mood, travel, symptoms, work stress, schedule"></textarea>
           </div>
           <button class="primary" id="saveCheckin">Generate Briefing</button>
         </section>
@@ -698,35 +458,12 @@
         </section>
       </aside>
 
-      <section class="right">
+      <section class="coach">
         <div class="coach-shell">
-          <div class="daily-strip">
-            <div class="metric">
-              <div class="metric-label">Source</div>
-              <div class="metric-value" id="mSleep">--</div>
-              <div class="metric-note">connected data</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Today</div>
-              <div class="metric-value" id="mHrv">--</div>
-              <div class="metric-note">activity status</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Soreness</div>
-              <div class="metric-value" id="mReady">--</div>
-              <div class="metric-note">1-10</div>
-            </div>
-            <div class="metric">
-              <div class="metric-label">Life Load</div>
-              <div class="metric-value" id="mStress">--</div>
-              <div class="metric-note">1-10</div>
-            </div>
-          </div>
-
           <div class="coach-card">
             <h2>Daily Briefing</h2>
             <div class="briefing" id="briefing">
-              <p class="empty">Create a profile, complete today&apos;s check-in, then generate the coach briefing.</p>
+              <p class="empty">Create a profile, complete today's check-in, then generate the coach briefing.</p>
             </div>
           </div>
 
@@ -751,32 +488,18 @@
     if (params.get("new") === "1") localStorage.removeItem("mm_beta_user_id");
     let userId = params.get("new") === "1" ? "" : (params.get("user_id") || localStorage.getItem("mm_beta_user_id") || "");
     let lastRating = "";
-    if (userId) localStorage.setItem("mm_beta_user_id", userId);
 
     const ids = [
-      "name", "upcoming_event", "injury_limitations", "nutrition_restrictions",
-      "coaching_style", "age", "sex", "height", "weight",
-      "sleep_hours", "sleep_quality", "hrv_ms", "resting_hr", "readiness_score",
-      "energy", "soreness", "stress", "data_missed", "planned_training",
-      "nutrition_calories", "nutrition_protein", "nutrition_carbs", "nutrition_fat",
-      "nutrition_notes", "notes"
+      "name", "phone", "email", "training_goals", "upcoming_competition",
+      "competition_date", "experience_level", "injury_limitations",
+      "nutrition_restrictions", "energy", "soreness", "stress",
+      "nutrition_calories", "nutrition_protein", "nutrition_carbs",
+      "nutrition_fat", "nutrition_notes", "notes"
     ];
 
     function el(id) { return document.getElementById(id); }
     function val(id) { return el(id).value.trim(); }
     function num(id) { return val(id) === "" ? null : Number(val(id)); }
-    function lines(id) { return val(id).split(/\n+/).map(s => s.trim()).filter(Boolean); }
-    function checkedValues(containerId) {
-      return Array.from(document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`))
-        .map(input => input.value);
-    }
-    function setCheckedValues(containerId, values) {
-      const set = new Set(Array.isArray(values) ? values : []);
-      document.querySelectorAll(`#${containerId} input[type="checkbox"]`).forEach(input => {
-        input.checked = set.has(input.value);
-      });
-    }
-
     function setStatus(text) { el("status").textContent = text; }
 
     document.querySelectorAll(".tab").forEach(button => {
@@ -795,37 +518,22 @@
 
     ids.forEach(id => {
       const node = el(id);
-      if (node) node.addEventListener("input", updateMetrics);
+      if (node) node.addEventListener("input", updateSubtitle);
     });
-
-    function updateMetrics() {
-      const sources = checkedValues("dataSources");
-      el("mSleep").textContent = sources.length ? sources[0] : "--";
-      el("mHrv").textContent = val("data_missed") ? "Context" : "Synced";
-      el("mReady").textContent = val("soreness") || "--";
-      el("mStress").textContent = val("stress") || "--";
-      el("ageDisplay").textContent = val("age") || "Connect device";
-      el("sexDisplay").textContent = val("sex") || "Connect device";
-      el("heightDisplay").textContent = val("height") || "Connect device";
-      el("weightDisplay").textContent = val("weight") || "Connect device";
-      updateSubtitle();
-    }
 
     function profilePayload() {
       return {
-        user_id: userId || val("name"),
+        user_id: userId || val("email") || val("phone") || val("name"),
         name: val("name"),
-        age: val("age"),
-        sex: val("sex"),
-        height: val("height"),
-        weight: val("weight"),
-        fitness_goals: checkedValues("fitnessGoals"),
-        upcoming_event: val("upcoming_event"),
-        training_days: checkedValues("trainingDays"),
-        data_sources: checkedValues("dataSources"),
+        phone: val("phone"),
+        email: val("email"),
+        training_goals: val("training_goals").split(/\n+/).map(s => s.trim()).filter(Boolean),
+        upcoming_competition: val("upcoming_competition"),
+        competition_date: val("competition_date"),
+        experience_level: val("experience_level"),
+        data_sources: ["Apple Health"],
         injury_limitations: val("injury_limitations"),
-        nutrition_restrictions: val("nutrition_restrictions"),
-        coaching_style: val("coaching_style")
+        nutrition_restrictions: val("nutrition_restrictions")
       };
     }
 
@@ -833,16 +541,9 @@
       return {
         user_id: userId,
         date: new Date().toISOString().slice(0, 10),
-        sleep_hours: num("sleep_hours"),
-        sleep_quality: num("sleep_quality"),
-        hrv_ms: num("hrv_ms"),
-        resting_hr: num("resting_hr"),
-        readiness_score: num("readiness_score"),
         energy: num("energy"),
         soreness: num("soreness"),
         stress: num("stress"),
-        data_missed: val("data_missed"),
-        planned_training: val("planned_training"),
         nutrition_calories: num("nutrition_calories"),
         nutrition_protein: num("nutrition_protein"),
         nutrition_carbs: num("nutrition_carbs"),
@@ -875,133 +576,12 @@
         localStorage.setItem("mm_beta_user_id", userId);
         updateSubtitle();
         setStatus("Profile saved");
-        el("profileSaveStatus").textContent = "Profile saved. Connect Strava or Polar here, then move to daily check-in.";
-        el("connectStatus").textContent = "Profile saved. Ready to connect a device.";
+        el("profileSaveStatus").textContent = "Profile saved. Move to check-in when ready.";
+        await refreshAppleStatus();
       } catch (err) {
         setStatus(err.message);
       }
     });
-
-    document.querySelectorAll(".connect-button").forEach(button => {
-      button.addEventListener("click", () => {
-        const provider = button.dataset.provider;
-        const checkbox = document.querySelector(`#dataSources input[value="${provider}"]`);
-        if (checkbox) checkbox.checked = true;
-
-        if (!userId) {
-          el("connectStatus").textContent = "Save profile before connecting devices.";
-          setStatus("Save profile first");
-          return;
-        }
-
-        if (provider === "Strava") {
-          connectOrSyncStrava();
-          return;
-        }
-        if (provider === "Polar") {
-          connectOrSyncPolar();
-          return;
-        }
-
-        el("connectStatus").textContent = `${provider} selected. This provider is planned after Strava.`;
-        setStatus(`${provider} planned`);
-      });
-    });
-
-    document.querySelectorAll(".disconnect-button").forEach(button => {
-      button.addEventListener("click", async () => {
-        if (!userId) return;
-        const provider = button.dataset.provider;
-        setStatus(`Disconnecting ${provider}`);
-        try {
-          await postJSON(`${API}/api/integrations/${provider}/disconnect`, {user_id: userId});
-          const display = provider === "strava" ? "Strava" : "Polar";
-          const checkbox = document.querySelector(`#dataSources input[value="${display}"]`);
-          if (checkbox) checkbox.checked = false;
-          el(`${provider}Button`).textContent = "Connect";
-          el(`${provider}Disconnect`).style.display = "none";
-          el("connectStatus").textContent = `${display} disconnected for this profile. To switch accounts, log out of ${display} in the browser before reconnecting.`;
-          setStatus(`${display} disconnected`);
-          updateMetrics();
-        } catch (err) {
-          el("connectStatus").textContent = err.message;
-          setStatus("Disconnect failed");
-        }
-      });
-    });
-
-    async function connectOrSyncStrava() {
-      if (el("stravaButton").textContent === "Sync") {
-        setStatus("Syncing Strava");
-        try {
-          el("connectStatus").textContent = "Syncing latest Strava activities...";
-          const data = await postJSON(`${API}/api/integrations/strava/sync`, {user_id: userId, days: 45});
-          el("connectStatus").textContent = `Strava synced: ${data.count} recent activities found.`;
-          setStatus("Strava synced");
-        } catch (err) {
-          el("connectStatus").textContent = err.message;
-          setStatus("Strava issue");
-        }
-        return;
-      }
-      setStatus("Opening Strava");
-      el("connectStatus").textContent = "Opening Strava authorization...";
-      window.top.location.href = `${API}/api/integrations/strava/connect?user_id=${encodeURIComponent(userId)}`;
-    }
-
-    async function connectOrSyncPolar() {
-      if (el("polarButton").textContent === "Sync") {
-        setStatus("Syncing Polar");
-        try {
-          el("connectStatus").textContent = "Syncing latest Polar training...";
-          const data = await postJSON(`${API}/api/integrations/polar/sync`, {user_id: userId});
-          el("connectStatus").textContent = `Polar synced: ${data.count} recent exercises found.`;
-          setStatus("Polar synced");
-        } catch (err) {
-          el("connectStatus").textContent = err.message;
-          setStatus("Polar issue");
-        }
-        return;
-      }
-      setStatus("Opening Polar");
-      el("connectStatus").textContent = "Opening Polar authorization...";
-      window.top.location.href = `${API}/api/integrations/polar/connect?user_id=${encodeURIComponent(userId)}`;
-    }
-
-    async function refreshIntegrationStatus() {
-      if (!userId) return;
-      try {
-        const response = await fetch(`${API}/api/integrations/status/${userId}`);
-        if (!response.ok) return;
-        const data = await response.json();
-        if (data.strava && data.strava.connected) {
-          const athlete = data.strava.athlete || {};
-          el("connectStatus").textContent = `Strava connected${athlete.name ? ` for ${athlete.name}` : ""}.`;
-          el("stravaButton").textContent = "Sync";
-          el("stravaDisconnect").style.display = "inline-block";
-          const checkbox = document.querySelector('#dataSources input[value="Strava"]');
-          if (checkbox) checkbox.checked = true;
-          if (athlete.sex && !val("sex")) el("sex").value = athlete.sex;
-          if (athlete.weight && !val("weight")) el("weight").value = athlete.weight;
-          updateMetrics();
-        }
-        if (data.polar && data.polar.connected) {
-          const athlete = data.polar.athlete || {};
-          el("connectStatus").textContent = `Polar connected${athlete.name ? ` for ${athlete.name}` : ""}.`;
-          el("polarButton").textContent = "Sync";
-          el("polarDisconnect").style.display = "inline-block";
-          const checkbox = document.querySelector('#dataSources input[value="Polar"]');
-          if (checkbox) checkbox.checked = true;
-          if (athlete.sex && !val("sex")) el("sex").value = athlete.sex;
-          if (athlete.age && !val("age")) el("age").value = athlete.age;
-          if (athlete.height && !val("height")) el("height").value = athlete.height;
-          if (athlete.weight && !val("weight")) el("weight").value = athlete.weight;
-          updateMetrics();
-        }
-      } catch {
-        return;
-      }
-    }
 
     el("saveCheckin").addEventListener("click", async () => {
       if (!userId) {
@@ -1010,7 +590,7 @@
         return;
       }
       setStatus("Generating briefing");
-      el("briefing").innerHTML = `<p class="empty">Coach is reading the check-in...</p>`;
+      el("briefing").innerHTML = `<p class="empty">Coach is reading today's data...</p>`;
       try {
         const checkinData = await postJSON(`${API}/api/checkin`, checkinPayload());
         const briefingData = await postJSON(`${API}/api/briefing`, {
@@ -1082,6 +662,24 @@
       }
     });
 
+    async function refreshAppleStatus() {
+      if (!userId) return;
+      try {
+        const response = await fetch(`${API}/api/apple-health/snapshot/${userId}`);
+        if (!response.ok) return;
+        const data = await response.json();
+        const snapshot = data.snapshot;
+        if (!snapshot) {
+          el("appleStatus").textContent = "Waiting for iPhone sync.";
+          return;
+        }
+        const workouts = snapshot.workouts || snapshot.exercise_activities || [];
+        el("appleStatus").textContent = `Synced ${snapshot.date || "today"} · ${workouts.length} workouts · HRV ${snapshot.hrv_ms ?? "--"} ms · sleep ${snapshot.sleep_score ?? "--"}`;
+      } catch {
+        return;
+      }
+    }
+
     function escapeHTML(text) {
       return String(text).replace(/[&<>"']/g, ch => ({
         "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
@@ -1090,7 +688,9 @@
 
     function renderMarkdown(text) {
       let html = escapeHTML(text);
-      html = html.replace(/^###?\s+(.+)$/gm, "<h3>$1</h3>");
+      html = html.replace(/^#\s+(.+)$/gm, "<h1>$1</h1>");
+      html = html.replace(/^###\s+(.+)$/gm, "<h3>$1</h3>");
+      html = html.replace(/^##\s+(.+)$/gm, "<h2>$1</h2>");
       html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
       html = html.replace(/\n{2,}/g, "</p><p>");
       html = html.replace(/\n/g, "<br>");
@@ -1099,18 +699,20 @@
 
     async function loadExisting() {
       if (!userId) {
-        updateMetrics();
+        updateSubtitle();
         return;
       }
+      localStorage.setItem("mm_beta_user_id", userId);
       try {
         const profileResp = await fetch(`${API}/api/profile/${userId}`);
         if (profileResp.ok) {
           const {profile} = await profileResp.json();
           Object.entries(profile).forEach(([key, value]) => {
-            if (key === "fitness_goals") setCheckedValues("fitnessGoals", value);
-            else if (key === "training_days") setCheckedValues("trainingDays", value);
-            else if (key === "data_sources") setCheckedValues("dataSources", value);
-            else if (el(key)) el(key).value = value || "";
+            if (key === "training_goals" && Array.isArray(value)) {
+              el(key).value = value.join("\n");
+            } else if (el(key)) {
+              el(key).value = value || "";
+            }
           });
         }
         const checkinResp = await fetch(`${API}/api/checkin/${userId}`);
@@ -1122,10 +724,10 @@
             });
           }
         }
-        updateMetrics();
-        refreshIntegrationStatus();
+        updateSubtitle();
+        await refreshAppleStatus();
       } catch {
-        updateMetrics();
+        updateSubtitle();
       }
     }
 

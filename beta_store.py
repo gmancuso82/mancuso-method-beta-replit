@@ -15,10 +15,11 @@ CHECKINS_DIR = DATA_DIR / "checkins"
 CONVERSATIONS_DIR = DATA_DIR / "conversations"
 FEEDBACK_DIR = DATA_DIR / "feedback"
 INTEGRATIONS_DIR = DATA_DIR / "integrations"
+APPLE_HEALTH_DIR = DATA_DIR / "apple_health"
 
 
 def ensure_data_dirs() -> None:
-    for path in [USERS_DIR, CHECKINS_DIR, CONVERSATIONS_DIR, FEEDBACK_DIR, INTEGRATIONS_DIR]:
+    for path in [USERS_DIR, CHECKINS_DIR, CONVERSATIONS_DIR, FEEDBACK_DIR, INTEGRATIONS_DIR, APPLE_HEALTH_DIR]:
         path.mkdir(parents=True, exist_ok=True)
 
 
@@ -65,6 +66,10 @@ def feedback_path(user_id: str, day: str) -> Path:
 def integration_path(user_id: str, provider: str) -> Path:
     safe_provider = slugify_user_id(provider)
     return INTEGRATIONS_DIR / f"{slugify_user_id(user_id)}__{safe_provider}.json"
+
+
+def apple_health_path(user_id: str, day: str) -> Path:
+    return APPLE_HEALTH_DIR / f"{slugify_user_id(user_id)}__{day}.json"
 
 
 def oauth_state_path(state: str) -> Path:
@@ -133,6 +138,11 @@ def list_integration_summaries() -> list[dict[str, Any]]:
     return summaries
 
 
+def list_apple_health_snapshots() -> list[dict[str, Any]]:
+    ensure_data_dirs()
+    return [read_json(path, {}) for path in sorted(APPLE_HEALTH_DIR.glob("*.json"), reverse=True)]
+
+
 def save_checkin(user_id: str, checkin: dict[str, Any]) -> dict[str, Any]:
     day = checkin.get("date") or today_key()
     saved = {
@@ -147,6 +157,30 @@ def save_checkin(user_id: str, checkin: dict[str, Any]) -> dict[str, Any]:
 
 def get_checkin(user_id: str, day: str | None = None) -> dict[str, Any] | None:
     return read_json(checkin_path(user_id, day or today_key()), None)
+
+
+def save_apple_health_snapshot(user_id: str, snapshot: dict[str, Any]) -> dict[str, Any]:
+    day = snapshot.get("date") or today_key()
+    saved = {
+        **snapshot,
+        "user_id": slugify_user_id(user_id),
+        "date": day,
+        "source": "apple_health",
+        "updated_at": datetime.now().isoformat(timespec="seconds"),
+    }
+    write_json(apple_health_path(user_id, day), saved)
+    return saved
+
+
+def get_apple_health_snapshot(user_id: str, day: str | None = None) -> dict[str, Any] | None:
+    return read_json(apple_health_path(user_id, day or today_key()), None)
+
+
+def recent_apple_health_snapshots(user_id: str, limit: int = 7) -> list[dict[str, Any]]:
+    ensure_data_dirs()
+    prefix = f"{slugify_user_id(user_id)}__"
+    paths = sorted(APPLE_HEALTH_DIR.glob(f"{prefix}*.json"), reverse=True)
+    return [read_json(path, {}) for path in paths[:limit]]
 
 
 def recent_checkins(user_id: str, limit: int = 7) -> list[dict[str, Any]]:

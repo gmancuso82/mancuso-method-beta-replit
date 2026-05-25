@@ -38,6 +38,13 @@ def oauth_callback_url(provider: str) -> str:
 
 def enrich_checkin_with_integrations(user_id: str, checkin: dict) -> dict:
     enriched = dict(checkin)
+    apple_snapshot = beta_store.get_apple_health_snapshot(user_id, enriched.get("date"))
+    recent_apple = beta_store.recent_apple_health_snapshots(user_id)
+    if apple_snapshot:
+        enriched["apple_health"] = apple_snapshot
+    if recent_apple:
+        enriched["recent_apple_health"] = recent_apple
+
     connected_activities = []
     strava = beta_store.get_integration(user_id, "strava") or {}
     if strava.get("recent_activities"):
@@ -135,6 +142,7 @@ def admin_overview():
             "conversations": beta_store.list_conversations(),
             "feedback": beta_store.list_feedback(),
             "integrations": beta_store.list_integration_summaries(),
+            "apple_health": beta_store.list_apple_health_snapshots(),
         }
     )
 
@@ -143,6 +151,7 @@ def admin_overview():
 def integration_status(user_id: str):
     strava = beta_store.get_integration(user_id, "strava")
     polar = beta_store.get_integration(user_id, "polar")
+    apple = beta_store.get_apple_health_snapshot(user_id)
     return jsonify(
         {
             "strava": {
@@ -159,13 +168,54 @@ def integration_status(user_id: str):
                 "last_sync_at": (polar or {}).get("last_sync_at"),
                 "recent_activities": (polar or {}).get("recent_activities", []),
             },
-            "apple_health": {"connected": False, "planned": True},
-            "apple_watch": {"connected": False, "planned": True},
+            "apple_health": {
+                "connected": bool(apple),
+                "planned": False,
+                "last_sync_at": (apple or {}).get("updated_at"),
+                "snapshot": apple,
+            },
+            "apple_watch": {"connected": bool(apple), "planned": False},
             "oura": {"connected": False, "planned": True},
             "whoop": {"connected": False, "planned": True},
             "garmin": {"connected": False, "planned": True},
         }
     )
+
+
+def apple_health_authorized() -> bool:
+    expected = os.getenv("IOS_APP_API_KEY", "").strip()
+    if not expected:
+        return True
+    provided = request.headers.get("X-MM-BETA-KEY", "").strip()
+    return provided == expected
+
+
+@app.post("/api/apple-health/snapshot")
+def save_apple_health_snapshot():
+    if not apple_health_authorized():
+        return jsonify({"error": "unauthorized"}), 401
+
+    payload = request.get_json(force=True)
+    user_id = payload.get("user_id", "").strip()
+    if not user_id:
+        return jsonify({"error": "user_id is required"}), 400
+
+    snapshot = beta_store.save_apple_health_snapshot(user_id, payload)
+    profile = beta_store.get_profile(user_id) or {"user_id": user_id}
+    for key in ["age", "sex", "weight"]:
+        if snapshot.get(key) not in [None, ""]:
+            profile[key] = snapshot[key]
+    sources = set(profile.get("data_sources") or [])
+    sources.add("Apple Health")
+    profile["data_sources"] = sorted(sources)
+    beta_store.save_profile(profile)
+    return jsonify({"snapshot": snapshot, "profile": profile})
+
+
+@app.get("/api/apple-health/snapshot/<user_id>")
+def get_apple_health_snapshot(user_id: str):
+    snapshot = beta_store.get_apple_health_snapshot(user_id)
+    return jsonify({"snapshot": snapshot})
 
 
 @app.post("/api/integrations/<provider>/disconnect")
